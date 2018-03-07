@@ -14,6 +14,11 @@ class Skill:
 		self.type='use'		# use/enemy/team/self
 		self.cost=0			#the AP cost of the spell
 
+	def get_power(self):
+
+		return self.power
+
+
 class Move(Skill):
 
 	def __init__(self):

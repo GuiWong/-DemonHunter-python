@@ -7,6 +7,8 @@ import Classes
 import Level
 import Color
 import Input
+import Ennemy
+import Combat
 
 
 
@@ -59,8 +61,11 @@ class Demon_Hunter_Game(Wong.Wong_Game):
 
 
 
+		self.init_ai()
+		self.fight=Combat.Combat_Manager()
 
 
+		self.other_unit=list()
 
 
 
@@ -70,7 +75,7 @@ class Demon_Hunter_Game(Wong.Wong_Game):
 
 		self.squad=Units.Squad(4)
 		self.squad.add_unit(self.create_unit('Alice',Classes.Warrior()))
-		self.squad.add_unit(self.create_unit('Bob',Classes.Archer()))
+		self.squad.add_unit(self.create_unit('Bob',Classes.Sage()))
 		self.squad.add_unit(self.create_unit('Cedric',Classes.Assasin()))
 		self.squad.add_unit(self.create_unit('David',Classes.Archer()))
 
@@ -138,7 +143,7 @@ class Demon_Hunter_Game(Wong.Wong_Game):
 
 
 		self.level.add_monster(self.create_monster(Classes.Demonito()))
-		self.level.add_monster(self.create_monster(Classes.Demonito()))
+		self.level.add_monster(self.create_monster(Classes.Runner()))
 		self.level.monsters.get_unit(1).set_pos(20,16)
 		self.level.monsters.get_unit(2).set_pos(21,15)
 
@@ -148,6 +153,10 @@ class Demon_Hunter_Game(Wong.Wong_Game):
 
 		self.initialize_path_map()
 		self.path_place_unit()
+
+
+
+
 
 
 		self.selected_window=None
@@ -180,8 +189,8 @@ class Demon_Hunter_Game(Wong.Wong_Game):
 			return
 
 		elif self.key.vk == libtcod.KEY_SPACE:
-			self.debug()
-			pass
+			self.test_ai()
+			print 'ai tested'
 
 		elif self.key==Input.F12:
 
@@ -223,7 +232,7 @@ class Demon_Hunter_Game(Wong.Wong_Game):
 
 	#Game INPUT----------------------------------------------------------
 
-		elif not self.selected_window:
+		elif not self.selected_window and self.state==1:
 
 			if self.key==Input.ESCAPE:
 
@@ -288,8 +297,12 @@ class Demon_Hunter_Game(Wong.Wong_Game):
 						self.target=self.get_target_list()[0]
 					else:
 						self.next_unit()
+
 				elif self.selected_unit and self.target:
 					self.next_target()
+
+				else:
+					self.next_unit()
 
 
 
@@ -332,6 +345,8 @@ class Demon_Hunter_Game(Wong.Wong_Game):
 				elif self.targeting:
 
 					self.next_target()
+
+
 
 
 
@@ -447,7 +462,41 @@ class Demon_Hunter_Game(Wong.Wong_Game):
 
 #	def build
 
+
+	#Combat Methods--------------------------------
+
+	def get_fight_issue(self):
+
+		assert self.target
+
+		self.fight.calc_issue(self.selected_unit,self.selected_action,self.target)
+
+	def kill_unit(self,unit):
+
+		corp=Units.Corpse()
+		corp.build_from_unit(unit)
+		self.other_unit.append(corp)
+
+		if unit.player:
+
+			self.squad.remove_unit(unit)
+
+		else:
+
+			self.level.monsters.remove_unit(unit)
+
 	#Base_Monster_Methodes--------------------------
+
+	def init_ai(self):
+
+		self.ia=Ennemy.Leader_Ai(self)
+
+	def test_ai(self):
+
+		unit=self.level.get_monsters()[1]
+		self.ia.get_all_targets(unit)
+		print '-----------------------------'
+		self.ia.choose_target(unit)
 
 
 	#-----getters-------------------------------
@@ -464,6 +513,10 @@ class Demon_Hunter_Game(Wong.Wong_Game):
 
 			result.append(ent)
 
+		for u in self.other_unit:
+
+			result.append(u.get_entity())
+
 		return result
 
 	def get_all_unit(self):
@@ -472,6 +525,9 @@ class Demon_Hunter_Game(Wong.Wong_Game):
 		for u in self.squad.get_units():
 			result.append(u)
 		for u in self.level.get_monsters():
+			result.append(u)
+
+		for u in self.other_unit:
 			result.append(u)
 
 
@@ -551,6 +607,8 @@ class Demon_Hunter_Game(Wong.Wong_Game):
 		#
 	#	self.select_action(0)
 		self.select_target(None)
+		self.set_potential_target(list())
+		self.set_targeting(False)
 
 		#temporary:
 		if unit:
@@ -579,24 +637,27 @@ class Demon_Hunter_Game(Wong.Wong_Game):
 
 	def select_target(self,target):
 
+
 		self.target=target
+		if target and type(target).__name__ != 'list':
+			self.get_fight_issue()
 
-	def is_targetable(self,target):
+	def is_targetable(self,target,player=True):
 
-		#check if target unit is targettable
-		#TODO: handle filter from action
-		#if self.selected_unit:
-		#	return True
-		#else:
-		#	return False
-															#temporary, will have to more checks
-		if self.in_move and self.selected_unit==target: #and not self.targeting:
-			return True
+		#TODO: use action to know targettable propriety
+		if player:											#temporary, will have to more checks
+			if self.in_move and self.selected_unit==target: #and not self.targeting:
+				return True
 
-		if not target.player and self.selected_action >0:
+			if not target.player and self.selected_action >0:
 
-			print 'this is a monster'
-			return True
+				print 'this is a monster'
+				return True
+		else:
+
+			if target.player:
+				return True
+
 
 
 
@@ -607,7 +668,7 @@ class Demon_Hunter_Game(Wong.Wong_Game):
 		print 'checking selectability of ',unit.get_name()
 		for elem in self.squad.get_units():
 			print elem
-			if unit==elem:
+			if unit==elem and unit.is_ready():
 				print 'it can!'
 				return True
 			else:
@@ -646,7 +707,7 @@ class Demon_Hunter_Game(Wong.Wong_Game):
 			elif self.is_selectable(unit):
 				self.select_unit(unit)
 		else:
-			if self.selected_unit and self.can_reach():
+			if self.selected_unit and self.can_reach() and self.selected_action==0:
 				self.select_target(self.selected_tile)
 
 
@@ -686,13 +747,29 @@ class Demon_Hunter_Game(Wong.Wong_Game):
 
 	def next_unit(self):
 
-		assert self.selected_unit
-		self.select_unit(WongUtils.get_next(self.squad.get_units(),self.selected_unit))
+		if self.selected_unit:
+			#self.select_unit(WongUtils.get_next(self.squad.get_units(),self.selected_unit))
+
+			a=WongUtils.get_next(self.squad.get_units(),self.selected_unit)
+		else:
+			a=self.squad.get_unit(1)
+
+		t=0
+		while not a.is_ready():
+			a=WongUtils.get_next(self.squad.get_units(),a)
+			t+=1
+			if t>5:
+				self.select_unit(None)
+				return
+		self.select_unit(a)
+
+
 
 	def next_target(self):
 
 
-		assert len(self.potential_target)>=1
+		if not len(self.potential_target)>=1:
+			return
 
 		if self.target:
 			self.select_target(WongUtils.get_next(self.potential_target,self.target))
@@ -702,6 +779,11 @@ class Demon_Hunter_Game(Wong.Wong_Game):
 	def heal_HP(self,unit,value):
 
 		unit.change_HP(value)
+
+		if unit.get_HP()<=0:
+
+			print 'a unit is dead'
+			self.kill_unit(unit)
 
 	def heal_AP(self,unit,value):
 
@@ -730,7 +812,7 @@ class Demon_Hunter_Game(Wong.Wong_Game):
 			for x in range(h):
 
 				tile=[X-b+x,Y-radius+y]
-				if (self.get_move_cost([X,Y],tile) <= range and
+				if (self.get_move_cost([X,Y],tile) <= radius and
 						libtcod.map_is_walkable(self.path_map,tile[0],tile[1])):
 
 					result.append(tile)
@@ -739,25 +821,6 @@ class Demon_Hunter_Game(Wong.Wong_Game):
 			self.set_reachable_tiles(result)
 		return result
 
-	def DEPRECATEDget_reachable_tile(self,unit,send=False):
-
-		X,Y= unit.get_pos()
-		radius=unit.get_AP()
-		result=list()
-		for b in range(radius):
-			for a in range(radius):
-
-				if (self.get_move_cost([X,Y],[X-radius+a+b,Y-a+b]) <= range and
-						libtcod.map_is_walkable(self.path_map,X-radius+a+b,Y-a+b)):
-
-					result.append([X-radius+a+b+1,Y-a+b])
-
-		if send:
-			print result[0]
-			print result[1]
-			print result
-			self.game_screen.set_reachable_tiles(result)
-		return result
 
 
 
@@ -785,6 +848,33 @@ class Demon_Hunter_Game(Wong.Wong_Game):
 			return pot
 		else:
 			return None
+
+	def get_all_potential_target(self,unit,x,y):
+
+		atks=len(unit.skills)
+
+		pot=list()
+		pot.append('thingy')
+
+		num_target=0
+
+		for a in range(1,atks):
+
+			pot.append(list())
+			reachable=unit.get_skill(a).target.get_potential_target(x,y)
+
+			for coord in reachable:
+				target=self.get_tile_occupant(coord[0],coord[1])
+				if target:
+					if self.is_targetable(target,False):
+						pot[a].append(target)
+						num_target+=1
+
+		pot[0]=num_target
+		return pot
+
+
+
 
 
 	def initialize_path_map(self):
@@ -815,8 +905,20 @@ class Demon_Hunter_Game(Wong.Wong_Game):
 			self.solve_move(unit,target)
 
 		else:
-			print unit.get_name(),',the ',unit.get_class_name()
-			print 'attacked the ',target.get_class_name(), ' Ennemy'
+			#print unit.get_name(),',the ',unit.get_class_name()
+			#print 'attacked the ',target.get_class_name(), ' Ennemy'
+			self.solve_fight(unit,id,target)
+
+			self.end_unit_turn()
+
+	def solve_fight(self,unit,id,target):
+
+		self.fight.calc_issue(unit,id,target)#not necessary
+		self.heal_HP(target,-1*self.fight.get_damage())
+		self.heal_AP(unit,-1*self.fight.get_cost())
+
+
+
 
 
 	def cancel_move(self):
@@ -836,11 +938,12 @@ class Demon_Hunter_Game(Wong.Wong_Game):
 			self.heal_AP(unit,dist*(-1))
 			self.in_move=False
 
-			self.end_unit_turn()
-			self.select_unit(None)
+			if target != 'pass':
+				self.end_unit_turn()
+			#self.select_unit(None)
 
 			self.update_path_map(self.begin_pos,unit)
-			self.set_targeting(False)
+			#self.set_targeting(False)
 			self.update_menu()
 		else:
 			self.begin_pos=list(unit.get_pos())
@@ -862,3 +965,11 @@ class Demon_Hunter_Game(Wong.Wong_Game):
 
 		self.selected_unit.end_turn()
 		self.selected_unit.get_entity().set_color(Color.DBLUE)
+
+		if self.in_move:
+
+			self.solve_move(self.selected_unit,'pass')
+
+		self.set_targeting(False)
+		self.select_target(None)
+		self.next_unit()

@@ -34,7 +34,6 @@ class Entity:
 
 
 
-
 class Unit:
 
 	def __init__(self,player=True):
@@ -70,6 +69,10 @@ class Unit:
 
 		self.AP_max=self.classe.baseAP
 		self.HP_max=self.classe.baseHP
+
+		self.AP=self.classe.baseAP
+		self.HP=self.classe.baseHP
+
 		self.entity.set_char(self.classe.char)
 
 		for skil in self.classe.base_skills:
@@ -133,6 +136,15 @@ class Unit:
 
 		return self.skills[id]
 
+	def get_type(self):
+
+		return self.classe.type
+
+
+	def __del__(self):
+
+		print self.get_name(), ' revoved from memory'
+
 
 
 class Squad:
@@ -172,3 +184,43 @@ class Squad:
 	def get_units(self):
 
 		return self.units
+
+	def remove_unit(self,unit):
+
+		for elem in self.units:
+
+			if elem == unit:
+				self.units.remove(unit)
+				break
+
+
+
+
+
+
+class Corpse(Unit):
+
+	def __init__(self):
+
+		Unit.__init__(self,False)
+
+	def is_ready(self):
+		return self.ready
+
+	def build_from_unit(self,unit):
+
+		self.set_name(unit.get_name()+' Body')
+		self.entity.set_char(chr(37))
+		self.entity.set_color(Color.BLACK)
+
+		self.AP_max=0
+		self.HP_max=0
+
+		self.AP=0
+		self.HP=0
+
+		self.set_pos(unit.get_pos()[0],unit.get_pos()[1])
+
+	def get_type(self):
+
+		return 'Corpse'
