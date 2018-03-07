@@ -178,9 +178,15 @@ class W_Button():
 		self.clicked_color=libtcod.Color(0,0,255)
 		self.clicked_bcg_color=libtcod.Color(255,255,0)
 
+		self.color=self.base_color
+		self.bcg_color=self.base_bcg_color
+
 	def hover(self):
 
-		pass
+		self.color=self.hover_color
+		self.bcg_color=self.hover_bcg_color
+
+		print 'a button has changed color'
 
 	def click(self):
 
@@ -188,11 +194,15 @@ class W_Button():
 
 	def leave(self):
 
-		pass
+		self.color=self.base_color
+		self.bcg_color=self.base_bcg_color
 
 	def activate(self):
 
-		self.action(*self.args)
+		if self.args==None:
+			self.action()
+		else:
+			self.action(*self.args)
 
 
 class Icon_Button(W_Icon,W_Button):
@@ -208,6 +218,22 @@ class Icon_Button(W_Icon,W_Button):
 		self.bcg_color=self.hover_bcg_color
 
 
+#added during 7DRL 2018
+
+class Text_Button(W_Text,W_Button):
+
+	def __init__(self,parent,width,height,text,color,bcg_color,action,args):
+
+		W_Button.__init__(self,color,bcg_color,action,args)
+		W_Text.__init__(self,parent,width,height,text,pos=False)
+
+	def build(self,con):
+
+		libtcod.console_set_default_background(con,self.bcg_color)
+		libtcod.console_set_default_foreground(con,self.color)
+		libtcod.console_print_ex(con,0,0,libtcod.BKGND_SET,libtcod.LEFT,self.text)
+		self.width=len(self.text)
+		self.height=1
 
 class Ui_holder(Wui_elem):
 

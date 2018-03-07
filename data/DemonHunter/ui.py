@@ -36,6 +36,8 @@ class Level_Shower(Ui.Game_Shower):
 		self.move_range=True
 		self.targetable=True
 
+		self.range=False
+
 		#self.reachable_tiles=list()	#Not sure to store it here
 
 		self.blink_selected=False
@@ -97,17 +99,7 @@ class Level_Shower(Ui.Game_Shower):
 													tile[1]+1,
 													Color.GREEN)
 
-		if self.selected:
-			if self.game.selected_tile:
-				libtcod.console_set_char_background(self.parent().console,
-													self.game.get_select_tile()[0]+1,
-													self.game.get_select_tile()[1]+1,
-													Color.YELLOW)
-			if self.game.selected_unit:
-				libtcod.console_set_char_background(self.parent().console,
-													self.game.selected_unit.get_pos()[0]+1,
-													self.game.selected_unit.get_pos()[1]+1,
-													Color.LCYAN)
+
 		if self.game.targeting:
 
 			for unit in self.game.get_target_list():
@@ -123,6 +115,18 @@ class Level_Shower(Ui.Game_Shower):
 				libtcod.console_set_char_foreground(self.parent().console,
 													self.game.target.get_pos()[0]+1,
 													self.game.target.get_pos()[1]+1,
+													Color.LCYAN)
+
+		if self.selected:
+			if self.game.selected_tile:
+				libtcod.console_set_char_background(self.parent().console,
+													self.game.get_select_tile()[0]+1,
+													self.game.get_select_tile()[1]+1,
+													Color.YELLOW)
+			if self.game.selected_unit:
+				libtcod.console_set_char_background(self.parent().console,
+													self.game.selected_unit.get_pos()[0]+1,
+													self.game.selected_unit.get_pos()[1]+1,
 													Color.LCYAN)
 
 
@@ -310,6 +314,74 @@ class Soft_Menu(Ui.Simple_Menu):
 			elem.set_pos(1,i)
 			libtcod.console_clear(temp)
 			i+=elem.height
+
+class Control_Menu(Ui.Simple_Menu):
+
+	def __init__(self,parent,width,height,name,pos=False):
+
+		Ui.Simple_Menu.__init__(self,parent,width,height,name,0,pos)
+		self.selected=False
+		self.elemid=None
+
+	def build(self,con):
+
+		i=0
+		w=1
+		temp=libtcod.console_new(self.width,self.height)
+		for elem in self.content:
+
+			#i+=1
+			elem.build(temp)
+			libtcod.console_blit(temp,0,0,elem.width,elem.height,con,w,i)
+			elem.set_pos(w,i)
+			libtcod.console_clear(temp)
+			i+=elem.height
+
+			libtcod.console_set_default_background(con,libtcod.black)
+			libtcod.console_set_default_foreground(con,libtcod.white)
+
+
+	def select_elem(self,id):
+
+		self.content[id].hover()
+
+	def unselect_elem(self,id):
+
+		self.content[id].leave()
+
+	def select(self):
+
+		self.selected=True
+		if self.elemid>=0:
+			self.select_elem(self.elemid)
+
+		else:
+			self.select_elem(0)
+			self.elemid=0
+
+
+	def unselect(self):
+
+		self.selected=False
+
+	def next_elem(self):
+
+
+		if self.elemid < len(self.content)-1 and self.elemid>=0:
+			self.unselect_elem(self.elemid)
+			self.elemid+=1
+			self.select_elem(self.elemid)
+
+	def previous_elem(self):
+
+		if self.elemid > 0:
+			self.unselect_elem(self.elemid)
+			self.elemid-=1
+			self.select_elem(self.elemid)
+
+	def activate_elem(self):
+
+		self.content[self.elemid].activate()
 
 class Unit_Info(Ui.Ui_holder):
 

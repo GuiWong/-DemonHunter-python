@@ -21,6 +21,8 @@ class Demon_Hunter_Game(Wong.Wong_Game):
 		self.squad=None
 		self.opponents=None
 
+		self.selected_window=None
+
 
 
 	#Ovveride from Wong_Game, to change game_shower to level_shower
@@ -55,7 +57,7 @@ class Demon_Hunter_Game(Wong.Wong_Game):
 		self.in_move=False
 		self.begin_pos=None
 
-		self.selected_window=None
+
 
 
 
@@ -147,6 +149,9 @@ class Demon_Hunter_Game(Wong.Wong_Game):
 		self.initialize_path_map()
 		self.path_place_unit()
 
+
+		self.selected_window=None
+
 		self.window.build()
 
 
@@ -197,9 +202,18 @@ class Demon_Hunter_Game(Wong.Wong_Game):
 
 			if self.key==Input.UP:
 				print 'up!'
+				self.selected_window.content.previous_elem()
+				self.update_menu(self.selected_window)
+			if self.key==Input.DOWN:
+				print 'up!'
+				self.selected_window.content.next_elem()
+				self.update_menu(self.selected_window)
 			elif self.key==Input.ESCAPE:
 				print 'escape'
-				self.open_pause_menu()
+				#self.open_pause_menu()
+			elif self.key==Input.ENTER:
+				self.selected_window.content.activate_elem()
+
 
 
 
@@ -247,12 +261,18 @@ class Demon_Hunter_Game(Wong.Wong_Game):
 				if self.selected_unit and self.target:
 
 					self.solve_action(self.selected_unit,self.selected_action,self.target)
-				else:
+
+				elif self.selected_tile:
 					self.select()
 
 					if self.selected_unit and self.target:
 
 						self.solve_action(self.selected_unit,self.selected_action,self.target)
+
+				else:
+					print 'empty enter'
+
+
 
 				if self.selected_unit:
 					print 'what to do now'
@@ -265,7 +285,7 @@ class Demon_Hunter_Game(Wong.Wong_Game):
 				if self.selected_unit and not self.target:
 					if len(self.get_target_list())>0: #self.targeting:
 						#print self.get_target_list()
-						self.target=self.get_potential_target()[0]
+						self.target=self.get_target_list()[0]
 					else:
 						self.next_unit()
 				elif self.selected_unit and self.target:
@@ -285,31 +305,33 @@ class Demon_Hunter_Game(Wong.Wong_Game):
 				else:
 					self.select_unit(self.squad.get_unit(a))
 
-			elif self.key==Input.UP:
+			elif self.key==Input.UP and not self.targeting:
 
 				if self.selected_tile:
 
 					self.set_selected_tile(self.selected_tile[0],self.selected_tile[1]-1)
 
-			elif self.key==Input.DOWN:
+			elif self.key==Input.DOWN and not self.targeting:
 
 				if self.selected_tile:
 
 					self.set_selected_tile(self.selected_tile[0],self.selected_tile[1]+1)
 
-			elif self.key==Input.LEFT:
+			elif self.key==Input.LEFT and not self.targeting:
 
 				if self.selected_tile:
 
 					self.set_selected_tile(self.selected_tile[0]-1,self.selected_tile[1])
 
-			elif self.key==Input.RIGHT:
+			elif self.key==Input.RIGHT :
 
-				if self.selected_tile:
+				if self.selected_tile and not self.targeting:
 
 					self.set_selected_tile(self.selected_tile[0]+1,self.selected_tile[1])
 
+				elif self.targeting:
 
+					self.next_target()
 
 
 
@@ -362,9 +384,13 @@ class Demon_Hunter_Game(Wong.Wong_Game):
 
 		while self.state!=0:
 
-			self.render()
-			self.input()
-			self.turn_iterate()
+			if self.state==1:
+				self.render()
+				self.input()
+				self.turn_iterate()
+			if self.state==2:
+				self.render()
+				self.input()
 
 	def turn_iterate(self):
 
@@ -376,6 +402,50 @@ class Demon_Hunter_Game(Wong.Wong_Game):
 			self.game_screen.blink()
 		if self.turner==1000:
 			self.turner=0
+
+	#Bigger Scope Methods-------------------------------------------------------------
+
+
+	def main_menu(self):
+		'''
+		handle the main menu
+		'''
+		main_menu_w=self.window.create_window(20,20,30,20,'Demon Hunter')
+
+
+		menu=ui.Control_Menu(main_menu_w,18,18,'Main menu')
+		main_menu_w.add_elem(menu)
+
+		button1=Ui.Text_Button(menu,15,1,'New Game',Color.WHITE,Color.BLACK,self.new_game,None)
+		menu.add_elem(button1)
+
+
+		button3=Ui.Text_Button(menu,15,1,'controls',Color.WHITE,Color.BLACK,WongUtils.idle,None)
+		menu.add_elem(button3)
+
+		button4=Ui.Text_Button(menu,15,1,'options',Color.WHITE,Color.BLACK,WongUtils.idle,None)
+		menu.add_elem(button4)
+
+		button2=Ui.Text_Button(menu,15,1,'quit',Color.WHITE,Color.BLACK,self.set_state,[0])
+		menu.add_elem(button2)
+
+		self.select_window(main_menu_w)
+
+		self.state=2
+		self.window.build()
+
+	def new_game(self):
+
+		wind=self.window.get_window_by_id('Demon Hunter')
+		if wind:
+			self.window.close_window(wind)
+
+		self.initialize_game()
+
+		#TODO
+		self.debug_start()
+
+#	def build
 
 	#Base_Monster_Methodes--------------------------
 
@@ -451,7 +521,8 @@ class Demon_Hunter_Game(Wong.Wong_Game):
 		return self.targeting
 	def set_targeting(self,mode=True):
 		self.targeting=mode
-	#----------Utility Methods---------------------------------
+#----------Utility Methods----------------------------------------
+
 
 
 	def create_unit(self,name,classe):
@@ -478,12 +549,13 @@ class Demon_Hunter_Game(Wong.Wong_Game):
 		self.selected_unit=unit
 
 		#
-		self.select_action(0)
+	#	self.select_action(0)
 		self.select_target(None)
 
 		#temporary:
 		if unit:
 			self.get_reachable_tile(unit,True)
+			self.select_action(0)
 		else:
 			self.set_reachable_tiles(list())
 
@@ -495,6 +567,7 @@ class Demon_Hunter_Game(Wong.Wong_Game):
 	def select_window(self,window):
 
 		self.selected_window=window
+		window.content.select()
 
 	def select_action(self,id):
 
@@ -516,10 +589,11 @@ class Demon_Hunter_Game(Wong.Wong_Game):
 		#	return True
 		#else:
 		#	return False
-		if self.in_move and self.selected_unit==target:
+															#temporary, will have to more checks
+		if self.in_move and self.selected_unit==target: #and not self.targeting:
 			return True
 
-		if not target.player:
+		if not target.player and self.selected_action >0:
 
 			print 'this is a monster'
 			return True
@@ -594,12 +668,15 @@ class Demon_Hunter_Game(Wong.Wong_Game):
 			self.select_window(None)
 			self.window.build()
 
-	def update_menu(self):
+	def update_menu(self,windowsup=None):
 
 		#self.
-		self.menu_w.build()	#temporary
+			#temporary
 
-
+		if windowsup:
+			windowsup.build()
+		else:
+			self.menu_w.build()
 
 	def debug(self):
 
@@ -614,10 +691,13 @@ class Demon_Hunter_Game(Wong.Wong_Game):
 
 	def next_target(self):
 
-		assert self.target
-		assert len(self.potential_target)>=1
-		self.select_target(WongUtils.get_next(self.potential_target,self.target))
 
+		assert len(self.potential_target)>=1
+
+		if self.target:
+			self.select_target(WongUtils.get_next(self.potential_target,self.target))
+		else:
+			self.select_target(self.get_target_list()[0])
 
 	def heal_HP(self,unit,value):
 
@@ -697,6 +777,7 @@ class Demon_Hunter_Game(Wong.Wong_Game):
 
 
 
+		print pot
 		if send:
 			self.set_potential_target(pot)
 
@@ -759,6 +840,7 @@ class Demon_Hunter_Game(Wong.Wong_Game):
 			self.select_unit(None)
 
 			self.update_path_map(self.begin_pos,unit)
+			self.set_targeting(False)
 			self.update_menu()
 		else:
 			self.begin_pos=list(unit.get_pos())

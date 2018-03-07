@@ -19,11 +19,12 @@ libtcod.console_init_root(80,50,"DemonHunter")
 
 libtcod.sys_set_fps(100)
 
-game.initialize_game()
+#game.initialize_game()
 
 
 
-game.debug_start()
+#game.debug_start()
+game.main_menu()
 
 print 'launching game'
 

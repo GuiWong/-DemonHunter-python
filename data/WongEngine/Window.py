@@ -118,7 +118,7 @@ class Main_Window(W_Window):
 		for wind in self.sub_windows:
 			if wind.id==id:
 				candidate=wind
-		return wind
+		return candidate
 	#------7DRL------------------------------------------------------------
 
 	def build(self):

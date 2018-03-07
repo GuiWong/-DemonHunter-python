@@ -52,7 +52,7 @@ class Archer(Classe):
 		self.baseHP=3
 		self.char=chr(68)
 
-		self.base_skills.append(Actions.Attack())
+		self.base_skills.append(Actions.RangeAttack())
 
 class Demonito(Classe):
 

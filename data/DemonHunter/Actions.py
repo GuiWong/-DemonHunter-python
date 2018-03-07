@@ -37,3 +37,15 @@ class Attack(Skill):
 		self.power=1		#the damage/heal/power of the skill
 		self.type='enemy'		# use/enemy/team/self
 		self.cost=0
+
+class RangeAttack(Skill):
+
+	def __init__(self):
+
+		Skill.__init__(self)
+
+		self.name='attack'
+		self.target=Target.Ranged(1,3)	#the Target object who handle targetting
+		self.power=1		#the damage/heal/power of the skill
+		self.type='enemy'		# use/enemy/team/self
+		self.cost=0
