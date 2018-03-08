@@ -189,8 +189,9 @@ class Demon_Hunter_Game(Wong.Wong_Game):
 			return
 
 		elif self.key.vk == libtcod.KEY_SPACE:
-			self.test_ai()
-			print 'ai tested'
+			#self.test_ai()
+			#print 'ai tested'
+			pass
 
 		elif self.key==Input.F12:
 
@@ -304,8 +305,9 @@ class Demon_Hunter_Game(Wong.Wong_Game):
 				else:
 					self.next_unit()
 
+			elif self.key==Input.SPACE:
 
-
+				self.next_turn()
 
 			elif self.key==Input.NUMBER:
 
@@ -407,16 +409,26 @@ class Demon_Hunter_Game(Wong.Wong_Game):
 				self.render()
 				self.input()
 
+			if self.state==3:
+
+				self.render()
+				self.input()
+				self.turn_iterate()
+
 	def turn_iterate(self):
 
 		self.turner+=1
 
-		if self.turner%10 ==0 and self.game_screen and self.state==1:
+		if self.turner%10 ==0 and self.game_screen and (self.state==1 or self.state==3):
 			self.game_screen.update()
 		if self.turner%50==0:
 			self.game_screen.blink()
 		if self.turner==1000:
 			self.turner=0
+
+		if self.state==3 and self.turner%100==0:
+
+			self.ia.step_ahead()
 
 	#Bigger Scope Methods-------------------------------------------------------------
 
@@ -460,14 +472,39 @@ class Demon_Hunter_Game(Wong.Wong_Game):
 		#TODO
 		self.debug_start()
 
-#	def build
+
+	def next_turn(self,confirm=True):
+
+		can_still_act=False
+		for u in self.get_all_unit():
+
+			if u.player and u.is_ready():
+
+				can_still_act=True
+
+		if can_still_act and confirm:
+			print 'message davertisement'
+			return
+		else:
+
+			self.ia.start_turn()
+			self.set_state(3)	#3:ennemy turn
+			#self.ia.do_a_move()
+
+	def new_turn(self):
+
+		for u in self.squad.get_units():
+			u.set_ready()
+			self.heal_AP(u,10)
+
+		self.state=1
 
 
 	#Combat Methods--------------------------------
 
 	def get_fight_issue(self):
 
-		assert self.target
+		assert self.target or self.state>2
 
 		self.fight.calc_issue(self.selected_unit,self.selected_action,self.target)
 
@@ -493,10 +530,16 @@ class Demon_Hunter_Game(Wong.Wong_Game):
 
 	def test_ai(self):
 
-		unit=self.level.get_monsters()[1]
-		self.ia.get_all_targets(unit)
-		print '-----------------------------'
-		self.ia.choose_target(unit)
+		self.ia.start_turn()
+		self.ia.calc_move()
+		#unit=self.level.get_monsters()[1]
+		#self.ia.get_all_targets(unit)
+		#print '-----------------------------'
+		#self.ia.choose_target(unit)
+
+	def solve_ennemy_move(self,move):
+
+		print move
 
 
 	#-----getters-------------------------------
