@@ -79,6 +79,7 @@ N7=([libtcod.KEY_7])
 N8=([libtcod.KEY_8])
 N9=([libtcod.KEY_9])
 
+F2=Input([libtcod.KEY_F2])
 F4=Input([libtcod.KEY_F4])
 
 F11=Input([libtcod.KEY_F11])

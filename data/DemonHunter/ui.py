@@ -83,7 +83,7 @@ class Level_Shower(Ui.Game_Shower):
 										self.game.level.map.get_tile(ent.x,ent.y).background)
 
 		self.ui_layer()
-#----------------------------------------------------------
+
 
 	def blink(self):
 		if self.blink_selected:
@@ -227,6 +227,28 @@ class Linked_Text(Ui.Wui_elem):
 	def set_bkg_color(self,color):
 		self.bkg_color=color
 
+class Linked_value(Ui.Wui_elem):
+
+	def __init__(self,parent,width,height,valuepointer,pos=False):
+
+		Ui.Wui_elem.__init__(self,parent,width,height,pos)
+
+		self.get_text=valuepointer
+		self.color=Color.WHITE
+		self.bkg_color=Color.BLACK
+
+	def build(self,con):
+
+		libtcod.console_set_default_background(con,self.bkg_color)
+		libtcod.console_set_default_foreground(con,self.color)
+		libtcod.console_print_ex(con,0,0,libtcod.BKGND_SET,libtcod.LEFT,str(self.get_text()))
+		self.width=len(str(self.get_text()))
+		self.height=1
+
+	def set_color(self,color):
+		self.color=color
+	def set_bkg_color(self,color):
+		self.bkg_color=color
 
 class State_Icon(Ui.Wui_elem):
 
@@ -310,7 +332,7 @@ class Soft_Menu(Ui.Simple_Menu):
 				libtcod.console_put_char_ex(con,c,i,chr(196),libtcod.white,libtcod.black)
 			i+=1
 			elem.build(temp)
-			libtcod.console_blit(temp,0,0,elem.width,elem.height,con,1,i)
+			libtcod.console_blit(temp,0,0,elem.width,elem.height,con,0,i)
 			elem.set_pos(1,i)
 			libtcod.console_clear(temp)
 			i+=elem.height
@@ -382,6 +404,225 @@ class Control_Menu(Ui.Simple_Menu):
 	def activate_elem(self):
 
 		self.content[self.elemid].activate()
+
+class Skill_Line(Line_Separator):#,Ui.W_Button):
+
+	def __init__(self,parent,width,height,unit,skill_id,separator=':',pos=False):
+
+		Line_Separator.__init__(self,parent,width,height,separator,pos)
+	#	Ui.W_button.__init__(self,Color.WHITE,Color.BLACK,action,args=None))
+
+		self.id=skill_id
+		self.link_to_unit(unit)
+
+	def link_to_unit(self,unit):
+
+		self.get_unit=weakref.ref(unit)
+		self.num=Ui.W_Text(self,1,1,str(self.id))
+		self.add_elem(self.num)
+		self.skill_name=Linked_Text(self,10,1,unit.get_skill(self.id).get_name)
+		self.add_elem(self.skill_name)
+
+class Squad_Ui(Ui.Ui_holder):
+
+	def __init__(self,parent,squad,game,pos=False):
+
+		Ui.Ui_holder.__init__(self)
+		Ui.Wui_elem.__init__(self,parent,28,28,pos)
+
+
+		for i in range(1,5,1):
+
+			ui=Unit_Ui(self,squad.get_unit(i))
+			self.add_elem(ui)
+
+	def build(self,con):
+
+		i=0
+		temp=libtcod.console_new(self.width,self.height)
+		#print len(self.content)
+		for elem in self.content:
+
+			elem.build(temp)
+			libtcod.console_blit(temp,0,0,elem.width,elem.height,con,0,i)
+			elem.set_pos(0,i)
+			#libtcod.console_put_char_ex(con,0,i,chr(26),libtcod.white,libtcod.black)
+			libtcod.console_clear(temp)
+			i+=elem.height-1
+
+class Unit_Ui(Ui.Ui_holder):
+
+	def __init__(self,parent,unit,pos=False):
+
+		Ui.Ui_holder.__init__(self)
+		Ui.Wui_elem.__init__(self,parent,28,7,pos)
+
+		self.unit_info=Unit_Info(parent,unit)
+		self.skill_info=Skill_Info(parent,unit)
+
+	def build(self,con):
+
+		libtcod.console_print_frame(con,0,0,self.width,self.height,False,libtcod.BKGND_SET)
+		libtcod.console_put_char_ex(con,13,0,chr(196),libtcod.white,libtcod.black)
+
+		temp=libtcod.console_new(self.width,self.height)
+
+		self.unit_info.build(temp)
+		libtcod.console_blit(temp,0,0,self.unit_info.width,self.unit_info.height,con,1,1)
+		self.unit_info.set_pos(1,1)
+		libtcod.console_clear(temp)
+
+		self.skill_info.build(temp)
+		libtcod.console_blit(temp,0,0,self.skill_info.width,self.skill_info.height,con,15,1)
+		self.skill_info.set_pos(16,1)
+		#libtcod.console_put_char_ex(con,0,i,chr(26),libtcod.white,libtcod.black)
+		libtcod.console_clear(temp)
+
+		libtcod.console_put_char_ex(con,14,0,chr(194),libtcod.white,libtcod.black)
+		libtcod.console_put_char_ex(con,14,self.height-1,chr(193),libtcod.white,libtcod.black)
+		for i in range(1,self.height-1):
+			libtcod.console_put_char_ex(con,14,i,chr(179),libtcod.white,libtcod.black)
+
+class Skill_Info(Ui.Simple_Menu):
+
+	def __init__(self,parent,unit,pos=False):
+
+		#Ui.Ui_holder.__init__(self)
+		#Ui.Wui_elem.__init__(self,parent,10,5,pos)
+		Ui.Simple_Menu.__init__(self,parent,14,5,'notname','skills')
+
+		self.skill1=Skill_Line(self,12,1,unit,1)
+		self.skill2=Skill_Line(self,12,1,unit,2)
+		self.skill3=Skill_Line(self,12,1,unit,3)
+		self.skill4=Skill_Line(self,12,1,unit,4)
+
+		self.add_elem(self.skill1)
+		self.add_elem(self.skill2)
+		self.add_elem(self.skill3)
+		self.add_elem(self.skill4)
+
+
+
+
+
+		self.link_to_unit(unit)
+
+	def link_to_unit(self,unit):
+
+		self.get_unit=weakref.ref(unit)
+
+
+	def build(self,con):
+
+		#if
+
+
+		i=0
+		temp=libtcod.console_new(self.width,self.height)
+		#print len(self.content)
+		for elem in self.content:
+
+			elem.build(temp)
+			libtcod.console_blit(temp,0,0,elem.width,elem.height,con,1,i)
+			elem.set_pos(1,i)
+			libtcod.console_put_char_ex(con,0,i,chr(26),libtcod.white,libtcod.black)
+			libtcod.console_clear(temp)
+			i+=1
+
+class Attacker_Info(Ui.Ui_holder):
+
+	def __init__(self,parent,unit,pos=False):
+
+		Ui.Ui_holder.__init__(self)
+		Ui.Wui_elem.__init__(self,parent,10,5,pos)
+
+	def link(self,unit,fighter):
+
+		self.unit_name=Linked_Text(self,10,1,unit.get_name)
+		self.hp_damage=Linked_Value(self,2,1,fighter.get_attacker_damage)
+		self.ap_damage=Linked_Value(self,2,1,fighter.get_cost)
+
+	def build(self,con):
+
+		temp=libtcod.console_new(self.width,self.height)
+
+		self.unit_name.build(temp)
+		libtcod.console_blit(temp,0,0,self.unit_name.width,self.unit_name.height,con,0,0)
+		self.unit_name.set_pos(0,0)
+		libtcod.console_clear(temp)
+
+		self.hp_damage.build(temp)
+		libtcod.console_blit(temp,0,0,self.hp_damage.width,self.hp_damage.height,con,8,1)
+		self.hp_damage.set_pos(8,1)
+		libtcod.console_clear(temp)
+
+		self.ap_damage.build(temp)
+		libtcod.console_blit(temp,0,0,self.ap_damage.width,self.ap_damage.height,con,8,2)
+		self.ap_damage.set_pos(8,1)
+		libtcod.console_clear(temp)
+
+
+class Combat_Info(Ui.Ui_holder):
+
+	def __init__(self,parent,unit,pos=False):
+
+		Ui.Ui_holder.__init__(self)
+		Ui.Wui_elem.__init__(self,parent,28,7,pos)
+
+class Log_Entry(Ui.Wui_elem):
+
+	def __init__(self,parent,width,height,type,text,pos=False):
+
+		Ui.Wui_elem.__init__(self,parent,width,height,pos)
+
+		self.entry = '['+type+']'+' - '+text
+
+		self.type=type
+
+		if type=='COMBAT':
+			self.color=Color.RED
+			self.bkg_color=Color.BLACK
+
+		else:
+			self.color=Color.WHITE
+			self.bkg_color=Color.BLACK
+
+	def build(self,con):
+
+		libtcod.console_set_default_background(con,self.bkg_color)
+		libtcod.console_set_default_foreground(con,self.color)
+		libtcod.console_print_rect_ex(con, 0, 0, self.width, 0, libtcod.BKGND_NONE, libtcod.LEFT, self.entry)
+		self.height=libtcod.console_get_height_rect(con, 0, 0, self.width, 0, self.entry)
+
+class Log(Ui.Ui_holder):
+
+	def __init__(self,parent,width,height,pos=False):
+
+		Ui.Ui_holder.__init__(self)
+		Ui.Wui_elem.__init__(self,parent,width,height,pos)
+
+	def print_entry(self,type,text):
+
+		self.content.insert(0,Log_Entry(self,self.width,1,type,text))
+
+	def build(self,con):
+
+		i=self.height-1
+		temp=libtcod.console_new(self.width,self.height)
+		#print len(self.content)
+		for elem in self.content:
+
+			elem.build(temp)
+			h=i+1-elem.height
+			libtcod.console_blit(temp,0,0,elem.width,elem.height,con,1,h)
+			elem.set_pos(1,h)
+			libtcod.console_put_char_ex(con,0,h,chr(26),libtcod.white,libtcod.black)
+			libtcod.console_clear(temp)
+			i=h-1
+
+			if h<=0:
+				break
+
 
 class Unit_Info(Ui.Ui_holder):
 

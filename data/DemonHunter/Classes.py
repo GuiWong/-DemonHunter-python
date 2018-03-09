@@ -93,7 +93,7 @@ class Runner(Classe):
 		Classe.__init__(self)
 		self.name="Runner"
 
-		self.baseAP=2
+		self.baseAP=3
 		self.baseHP=2
 		self.char=chr(224)
 		self.type='stealth'

@@ -9,10 +9,8 @@ class Entity:
 	def __init__(self,player=True):#TODO
 
 		self.char='@'
-		if player:
-			self.color=Color.LBLUE
-		else:
-			self.color=Color.LRED
+		self.player=player
+		self.active_color()
 		self.name='default'
 
 		self.x=0
@@ -31,7 +29,19 @@ class Entity:
 	def set_char(self,char):
 		self.char=char
 
+	def active_color(self):
 
+		if self.player:
+			self.color=Color.LBLUE
+		else:
+			self.color=Color.LRED
+
+	def inactive_color(self):
+
+		if self.player:
+			self.color=Color.DBLUE
+		else:
+			self.color=Color.RED
 
 
 class Unit:
@@ -120,8 +130,10 @@ class Unit:
 		return self.ready
 	def end_turn(self):
 		self.ready=False
+		self.get_entity().inactive_color()
 	def set_ready(self):
 		self.ready=True
+		self.get_entity().active_color()
 
 	def get_entity(self):
 		return self.entity
@@ -134,7 +146,10 @@ class Unit:
 
 	def get_skill(self,id):
 
-		return self.skills[id]
+		if id < len(self.skills):
+			return self.skills[id]
+		else:
+			return Actions.No_Skill()
 
 	def get_type(self):
 

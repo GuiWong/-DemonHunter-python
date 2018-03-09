@@ -43,6 +43,10 @@ class Combat_Manager:
 
 		return self.damage
 
+	def get_attacker_damage(self):
+
+		return 0
+
 	def get_cost(self):
 
 		return self.cost

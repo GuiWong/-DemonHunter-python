@@ -1,6 +1,7 @@
 
-
+from WongEngine import WongUtils
 import Units
+import libtcodpy as libtcod
 
 
 class Leader_Ai:
@@ -20,6 +21,7 @@ class Leader_Ai:
 		self.pull_list=list(self.game.level.get_monsters())
 		for m in self.pull_list:
 			m.set_ready()
+			self.game.heal_AP(m,10)
 
 
 	def calc_move(self):
@@ -49,21 +51,41 @@ class Leader_Ai:
 		elif self.step==2:
 			self.do_an_attack()
 
+
+		elif self.step==3:
+			self.do_finish()
+
 		else:
 
 			self.game.new_turn()
 
 	def do_a_move(self):
 
-		self.step=2
+
 		n=len(self.move)-1
-		self.active.set_pos(self.move[n][0],self.move[n][1])
+		endpos=self.move[n]
+		#self.active.set_pos(self.move[n][0],self.move[n][1])
+
+		if self.move[0]==0:
+			self.step=3
+		else:
+			self.step=2
+
+		self.game.solve_ennemy_move(self.active,endpos)
+
 
 	def do_an_attack(self):
 
 		self.step=0
 
 		self.game.solve_fight(self.active,self.move[1],self.move[2])
+
+		self.active.end_turn()
+
+	def do_finish(self):
+
+		self.step=0
+
 
 		self.active.end_turn()
 
@@ -90,6 +112,7 @@ class Leader_Ai:
 
 
 		potential=list()
+		target_exist=False
 
 		for move in self.move_list:
 			val=0
@@ -98,8 +121,10 @@ class Leader_Ai:
 			else:
 				if move[0]==1:
 					val+=2
+					target_exist=True
 				else:
 					val+=1
+					target_exist=True
 
 				atk=len(move)-2
 				a=1
@@ -129,22 +154,51 @@ class Leader_Ai:
 		choice=0
 
 		print potential
+		print 'ici'
 
-		for i in range(len(potential)):
+		if target_exist:
 
-			if max < potential[i][0]:
-				print 'wait a minute'
-				max=potential[i][0]
-				choice=i
+			for i in range(len(potential)):
 
-		if max==0:
+				if max < potential[i][0]:
+					print 'wait a minute'
+					max=potential[i][0]
+					choice=i
 
-			print 'no target'
+					if max==0:
+
+						print 'no target'
+
+					else:
+
+						return potential[choice]
 
 		else:
 
-			return potential[choice]
+			print 'and here too'
+			d=100
+			t=None
+			for u in self.game.squad.get_units():
+				self.game.set_path_map(u.get_pos()[0],u.get_pos()[1],True)
+				dist=self.game.get_move_cost(unit.get_pos(),u.get_pos())
+				print dist
+				self.game.set_path_map(u.get_pos()[0],u.get_pos()[1],False)
+				if dist<d:
+					d=dist
+					t=u
 
+
+			i=unit.get_AP()-1
+			self.game.set_path_map(t.get_pos()[0],t.get_pos()[1],True)
+			tile=self.game.get_path_pos(list(unit.get_pos()),list(t.get_pos()),i)
+			self.game.set_path_map(u.get_pos()[0],u.get_pos()[1],False)
+
+			print tile
+			#print libtcod.path_size(path)
+			#print libtcod.path_get(path, i)
+
+
+			return [0,tile]
 
 
 	def move_unit(self,unit):

@@ -128,18 +128,23 @@ class Demon_Hunter_Game(Wong.Wong_Game):
 		libtcod.console_set_color_control(libtcod.COLCTRL_2,Color.DBLUE,Color.BLACK)
 
 
-		self.chara1_menu=ui.Unit_Info(self.charamenu,self.squad.get_unit(1))
-		self.charamenu.add_elem(self.chara1_menu)
+		#self.chara1_menu=ui.Unit_Info(self.charamenu,self.squad.get_unit(1))
+		#self.charamenu.add_elem(self.chara1_menu)
 
-		self.chara2_menu=ui.Unit_Info(self.charamenu,self.squad.get_unit(2))
-		self.charamenu.add_elem(self.chara2_menu)
+		#self.chara2_menu=ui.Unit_Info(self.charamenu,self.squad.get_unit(2))
+		#self.charamenu.add_elem(self.chara2_menu)
 
-		self.chara3_menu=ui.Unit_Info(self.charamenu,self.squad.get_unit(3))
-		self.charamenu.add_elem(self.chara3_menu)
+		#self.chara3_menu=ui.Unit_Info(self.charamenu,self.squad.get_unit(3))
+		#self.charamenu.add_elem(self.chara3_menu)
 
-		self.chara4_menu=ui.Unit_Info(self.charamenu,self.squad.get_unit(4))
-		self.charamenu.add_elem(self.chara4_menu)
+		#self.chara4_menu=ui.Unit_Info(self.charamenu,self.squad.get_unit(4))
+		#self.charamenu.add_elem(self.chara4_menu)
 
+		#self.test_menu=ui.Unit_Ui(self.charamenu,self.squad.get_unit(1))
+		#self.charamenu.add_elem(self.test_menu)
+
+		self.squad_ui=ui.Squad_Ui(self.charamenu,self.squad,self)
+		self.charamenu.add_elem(self.squad_ui)
 
 
 		self.level.add_monster(self.create_monster(Classes.Demonito()))
@@ -154,6 +159,11 @@ class Demon_Hunter_Game(Wong.Wong_Game):
 		self.initialize_path_map()
 		self.path_place_unit()
 
+
+
+		self.log_w=self.window.create_window(50,8,0,42,'Log')
+		self.log=ui.Log(self.log_w,48,6)
+		self.log_w.add_elem(self.log)
 
 
 
@@ -183,6 +193,10 @@ class Demon_Hunter_Game(Wong.Wong_Game):
 		elif self.key == Input.F4:
 
 			self.game_screen.toggle_blink_selected()
+
+		elif self.key == Input.F2:
+
+			self.test_log()
 
 		elif self.key == Input.ALT_ESCAPE:
 			self.state=0
@@ -522,6 +536,8 @@ class Demon_Hunter_Game(Wong.Wong_Game):
 
 			self.level.monsters.remove_unit(unit)
 
+		self.print_log('COMBAT',unit.get_name() + ' Died!')
+
 	#Base_Monster_Methodes--------------------------
 
 	def init_ai(self):
@@ -537,11 +553,24 @@ class Demon_Hunter_Game(Wong.Wong_Game):
 		#print '-----------------------------'
 		#self.ia.choose_target(unit)
 
-	def solve_ennemy_move(self,move):
+	def solve_ennemy_move(self,unit,move):
 
-		print move
+		bginpos=unit.get_pos()
+		#self.update_path_map(unit.get_pos(),move)
+		unit.set_pos(move[0],move[1])
+		self.update_path_map(bginpos,unit)
 
 
+	#-----------log-------------------------------
+
+	def print_log(self,type,text):
+
+		self.log.print_entry(type,text)
+		self.log_w.build()
+
+	def test_log(self):
+
+		self.print_log('DEBUG','Ceci est un message test')
 	#-----getters-------------------------------
 
 	def get_entity(self):
@@ -657,8 +686,13 @@ class Demon_Hunter_Game(Wong.Wong_Game):
 		if unit:
 			self.get_reachable_tile(unit,True)
 			self.select_action(0)
+
+			self.print_log('GAME',unit.get_name() + ' selected')
 		else:
 			self.set_reachable_tiles(list())
+
+
+
 
 
 	def set_selected_tile(self,x,y):
@@ -684,6 +718,8 @@ class Demon_Hunter_Game(Wong.Wong_Game):
 		self.target=target
 		if target and type(target).__name__ != 'list':
 			self.get_fight_issue()
+			if target != self.selected_unit:
+				self.print_log('GAME',target.get_name() + ' targeted - ' + str(self.fight.get_damage()) + ' damages if you attack')
 
 	def is_targetable(self,target,player=True):
 
@@ -736,8 +772,26 @@ class Demon_Hunter_Game(Wong.Wong_Game):
 
 		path=libtcod.path_new_using_map(self.path_map,0)
 		libtcod.path_compute(path,pos1[0],pos1[1],pos2[0],pos2[1])
-		return libtcod.path_size(path)
+		siz = libtcod.path_size(path)
 
+		libtcod.path_delete(path)
+
+		return siz
+
+	def get_path_pos(self,pos1,pos2,dist):
+
+		chemin=libtcod.path_new_using_map(self.path_map,0)
+		print pos1,pos2
+		libtcod.path_compute(chemin,pos1[0],pos1[1],pos2[0],pos2[1])
+		print libtcod.path_is_empty(chemin)
+
+		x,y=libtcod.path_get(chemin,dist)
+
+	#	for i in range(dist):
+	#		x,y=libtcod.path_walk(path,False)
+	#	print x,y
+		libtcod.path_delete(chemin)
+		return [x,y]
 
 	def select(self):
 
@@ -939,6 +993,9 @@ class Demon_Hunter_Game(Wong.Wong_Game):
 
 		libtcod.map_set_properties(self.path_map,unit.get_pos()[0],unit.get_pos()[1],True,False)
 
+	def set_path_map(self,x,y,path):
+
+		libtcod.map_set_properties(self.path_map,x,y,True,path)
 
 	def solve_action(self,unit,id,target):
 
@@ -960,7 +1017,10 @@ class Demon_Hunter_Game(Wong.Wong_Game):
 		self.heal_HP(target,-1*self.fight.get_damage())
 		self.heal_AP(unit,-1*self.fight.get_cost())
 
+		log=unit.get_name() + ' attacked ' + target.get_name() + ' for ' + str(self.fight.get_damage()) + ' damage'
 
+		self.print_log('COMBAT',log)
+		self.menu_w.build()
 
 
 

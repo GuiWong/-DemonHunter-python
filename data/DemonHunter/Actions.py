@@ -18,6 +18,19 @@ class Skill:
 
 		return self.power
 
+	def get_name(self):
+		return self.name
+
+class No_Skill(Skill):
+
+	def __init__(self):
+
+		self.name='-------'
+		self.target=None	#the Target object who handle targetting
+		self.power=0		#the damage/heal/power of the skill
+		self.type='use'		# use/enemy/team/self
+		self.cost=0
+
 
 class Move(Skill):
 
