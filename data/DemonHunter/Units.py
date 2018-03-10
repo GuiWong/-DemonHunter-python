@@ -64,6 +64,9 @@ class Unit:
 
 		self.player=player
 
+	def levelup(self):
+
+		self.level+=1
 
 	def set_class(self,classe):
 
@@ -148,6 +151,9 @@ class Unit:
 
 		if id < len(self.skills):
 			return self.skills[id]
+
+		#elif id-len(self.skills)<len(self.classe.learn_skills):
+		#	return self.classe.learn_skills[id-len(self.skills)]
 		else:
 			return Actions.No_Skill()
 
@@ -182,11 +188,22 @@ class Squad:
 
 	def get_unit(self,id):
 
-		return self.units[id-1]
+		if id <= len(self.units):
+			return self.units[id-1]
+		else:
+			return Nobody()
 
 	def add_unit(self,unit):
 
 		self.units.append(unit)
+
+	def set_unit(self,id,unit):
+
+		print id
+		if len(self.units)>id:
+			self.units[id-1]=unit
+		else:
+			self.add_unit(unit)
 
 
 	def get_entities(self):
@@ -239,3 +256,36 @@ class Corpse(Unit):
 	def get_type(self):
 
 		return 'Corpse'
+
+
+class Nobody(Unit):
+
+	def __init__(self):
+
+		Unit.__init__(self,False)
+
+	def is_ready(self):
+		return self.ready
+
+	def get_class_name(self):
+
+		return 'xxxxxxx'
+
+	def build(self):
+
+		self.set_name('-----')
+		self.entity.set_char(chr(2))
+		self.entity.set_color(Color.BLACK)
+		self.set_name('-----')
+
+		self.AP_max=0
+		self.HP_max=0
+
+		self.AP=0
+		self.HP=0
+
+		#self.set_pos(unit.get_pos()[0],unit.get_pos()[1])
+
+	def get_type(self):
+
+		return 'Not'

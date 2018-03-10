@@ -14,6 +14,10 @@ class Skill:
 		self.type='use'		# use/enemy/team/self
 		self.cost=0			#the AP cost of the spell
 
+		self.inflict_state=None
+		self.state_bonus=None
+		self.effect=None
+
 	def get_power(self):
 
 		return self.power
@@ -67,3 +71,35 @@ class RangeAttack(Skill):
 		self.power=1		#the damage/heal/power of the skill
 		self.type='enemy'		# use/enemy/team/self
 		self.cost=0
+
+class Kick(Skill):
+
+	def __init__(self):
+
+		Skill.__init__(self)
+
+		self.name='Kick'
+		self.target=Target.CaC()	#the Target object who handle targetting
+		self.power=1		#the damage/heal/power of the skill
+		self.type='enemy'		# use/enemy/team/self
+		self.cost=1			#the AP cost of the spell
+
+		self.inflict_state=None
+		self.state_bonus=None
+		self.effect=['push',1]
+
+class Lock(Skill):
+
+	def __init__(self):
+
+		Skill.__init__(self)
+
+		self.name='Lock'
+		self.target=Target.CaC()	#the Target object who handle targetting
+		self.power=0	#the damage/heal/power of the skill
+		self.type='enemy'		# use/enemy/team/self
+		self.cost=1			#the AP cost of the spell
+
+		self.inflict_state='locked'
+		self.state_bonus=None
+		self.effect=None

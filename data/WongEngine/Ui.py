@@ -60,9 +60,9 @@ class Wui_elem:
 
 
 
-	def __del__(self):
+#	def __del__(self):
 
-		print "Wui object deleted"
+		#print "Wui object deleted"
 
 
 		#TODO wrapping,colors, etc...
@@ -129,7 +129,7 @@ class W_Text(Wui_elem):
 
 	def build(self,con):
 
-		print 'and build here too'
+		#print 'and build here too'
 		#libtcod.console_set_default_foreground(con,libtcod.blue)
 		#libtcod.console_set_default_background(con,libtcod.red)
 		libtcod.console_print_ex(con,0,0,libtcod.BKGND_NONE,libtcod.LEFT,self.text)
@@ -186,11 +186,12 @@ class W_Button():
 		self.color=self.hover_color
 		self.bcg_color=self.hover_bcg_color
 
-		print 'a button has changed color'
+		#print 'a button has changed color'
 
 	def click(self):
 
-		pass
+		self.color=self.clicked_color
+		self.bcg_color=self.clicked_bcg_color
 
 	def leave(self):
 
@@ -268,9 +269,9 @@ class Ui_holder(Wui_elem):
 		result=candidate.get_elem_by_mouse(x-candidate.pos[0],y-candidate.pos[1])
 
 		return result
-	def __del__(self):
+#	def __del__(self):
 
-		print "ui holder object deleted"
+		#print "ui holder object deleted"
 
 
 
@@ -305,13 +306,13 @@ class Simple_Menu(Ui_holder):
 
 		for elem in self.content:
 
-			print elem
-			print "built"
+			#print elem
+			#print "built"
 			dh=elem.build(temp)
 			dh=elem.height				#updated from dh
 			libtcod.console_blit(temp,0,0,elem.width,dh,con,1,i)
 			elem.set_pos(1,i)
-			print 'elem placed at', elem.pos
+		#	print 'elem placed at', elem.pos
 
 			libtcod.console_clear(temp)
 			libtcod.console_put_char_ex(con,0,i,chr(26),libtcod.white,libtcod.black)

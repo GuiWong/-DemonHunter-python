@@ -227,6 +227,13 @@ class Linked_Text(Ui.Wui_elem):
 	def set_bkg_color(self,color):
 		self.bkg_color=color
 
+class Linked_Button(Linked_Text,Ui.W_Button):
+
+	def __init__(self,parent,width,height,textpointer,action,args,pos=False):
+
+		Linked_Text.__init__(self,parent,width,height,textpointer,pos)
+		Ui.W_Button.__init__(self,Color.WHITE,Color.BLACK,action,args)
+
 class Linked_value(Ui.Wui_elem):
 
 	def __init__(self,parent,width,height,valuepointer,pos=False):
@@ -405,6 +412,66 @@ class Control_Menu(Ui.Simple_Menu):
 
 		self.content[self.elemid].activate()
 
+class Upgrade_Controll(Control_Menu):
+
+
+
+	def __init__(self,parent,game,pos=False):
+
+		Control_Menu.__init__(self,parent,10,40,'upgrade',pos)
+		self.selected=False
+		self.elemid=None
+		self.selected_unit=1
+		self.get_game=weakref.ref(game)
+
+		self.nubmer_of_point=Linked_Button(self,8,1,self.get_game().get_total_wupoint,WongUtils.idle,None)
+		self.add_elem(self.nubmer_of_point)
+
+		self.unit_name=Linked_Button(self,8,1,self.get_unit().get_name,WongUtils.idle,None)
+		self.add_elem(self.unit_name)
+
+		self.hp_button=Ui.Text_Button(self,8,1,'[' + str(self.get_game().get_upgrade_cost(self.get_unit,'HP')) + ']',Color.WHITE,Color.BLACK,self.get_game().upgrade_unit,[self.get_unit(),'HP'])
+		self.add_elem(self.hp_button)
+		self.ap_button=Ui.Text_Button(self,8,1,'[' + str(self.get_game().get_upgrade_cost(self.get_unit,'AP')) + ']',Color.WHITE,Color.BLACK,self.get_game().upgrade_unit,[self.get_unit(),'AP'])
+		self.add_elem(self.ap_button)
+
+
+
+	def link_to_unit(self,unit):
+
+		pass
+
+	def get_unit(self):
+
+		return self.get_game().squad.get_unit(self.selected_unit)
+
+	def build(self,con):
+
+		i=0
+		w=1
+		temp=libtcod.console_new(self.width,self.height)
+		for elem in self.content:
+
+			#i+=1
+			elem.build(temp)
+			libtcod.console_blit(temp,0,0,elem.width,elem.height,con,w,i)
+			elem.set_pos(w,i)
+			libtcod.console_clear(temp)
+			i+=elem.height
+
+			i+=1
+
+			libtcod.console_set_default_background(con,libtcod.black)
+			libtcod.console_set_default_foreground(con,libtcod.white)
+
+
+class upgrade_button(Linked_Button):
+
+	def __init__(self,parent,width,height,textpointer,action,args,pos=False):
+		Linked_Button.__init__(self,parent,width,height,textpointer,action,args,pos=False)
+
+
+
 class Skill_Line(Line_Separator):#,Ui.W_Button):
 
 	def __init__(self,parent,width,height,unit,skill_id,separator=':',pos=False):
@@ -436,6 +503,16 @@ class Squad_Ui(Ui.Ui_holder):
 			ui=Unit_Ui(self,squad.get_unit(i))
 			self.add_elem(ui)
 
+	def rebuild(self,squad):
+
+		self.content=list()
+
+		for i in range(1,5,1):
+
+			ui=Unit_Ui(self,squad.get_unit(i))
+			self.add_elem(ui)
+
+
 	def build(self,con):
 
 		i=0
@@ -459,29 +536,37 @@ class Unit_Ui(Ui.Ui_holder):
 
 		self.unit_info=Unit_Info(parent,unit)
 		self.skill_info=Skill_Info(parent,unit)
+		if unit.get_type()=='Not':
+			self.empty=True
+		else:
+			self.empty=False
 
 	def build(self,con):
 
 		libtcod.console_print_frame(con,0,0,self.width,self.height,False,libtcod.BKGND_SET)
 		libtcod.console_put_char_ex(con,13,0,chr(196),libtcod.white,libtcod.black)
 
-		temp=libtcod.console_new(self.width,self.height)
+		if self.empty:
+			pass
+		else:
 
-		self.unit_info.build(temp)
-		libtcod.console_blit(temp,0,0,self.unit_info.width,self.unit_info.height,con,1,1)
-		self.unit_info.set_pos(1,1)
-		libtcod.console_clear(temp)
+			temp=libtcod.console_new(self.width,self.height)
 
-		self.skill_info.build(temp)
-		libtcod.console_blit(temp,0,0,self.skill_info.width,self.skill_info.height,con,15,1)
-		self.skill_info.set_pos(16,1)
-		#libtcod.console_put_char_ex(con,0,i,chr(26),libtcod.white,libtcod.black)
-		libtcod.console_clear(temp)
+			self.unit_info.build(temp)
+			libtcod.console_blit(temp,0,0,self.unit_info.width,self.unit_info.height,con,1,1)
+			self.unit_info.set_pos(1,1)
+			libtcod.console_clear(temp)
 
-		libtcod.console_put_char_ex(con,14,0,chr(194),libtcod.white,libtcod.black)
-		libtcod.console_put_char_ex(con,14,self.height-1,chr(193),libtcod.white,libtcod.black)
-		for i in range(1,self.height-1):
-			libtcod.console_put_char_ex(con,14,i,chr(179),libtcod.white,libtcod.black)
+			self.skill_info.build(temp)
+			libtcod.console_blit(temp,0,0,self.skill_info.width,self.skill_info.height,con,15,1)
+			self.skill_info.set_pos(16,1)
+			#libtcod.console_put_char_ex(con,0,i,chr(26),libtcod.white,libtcod.black)
+			libtcod.console_clear(temp)
+
+			libtcod.console_put_char_ex(con,14,0,chr(194),libtcod.white,libtcod.black)
+			libtcod.console_put_char_ex(con,14,self.height-1,chr(193),libtcod.white,libtcod.black)
+			for i in range(1,self.height-1):
+				libtcod.console_put_char_ex(con,14,i,chr(179),libtcod.white,libtcod.black)
 
 class Skill_Info(Ui.Simple_Menu):
 
@@ -581,6 +666,10 @@ class Log_Entry(Ui.Wui_elem):
 
 		if type=='COMBAT':
 			self.color=Color.RED
+			self.bkg_color=libtcod.Color(0,128,128)
+
+		elif type=='TEAM':
+			self.color=Color.GREEN
 			self.bkg_color=Color.BLACK
 
 		else:
@@ -716,3 +805,108 @@ class Unit_Info(Ui.Ui_holder):
 			libtcod.console_put_char_ex(con,0,i,chr(26),libtcod.white,libtcod.black)
 			libtcod.console_clear(temp)
 			i+=1
+
+
+class Character_File(Ui.Ui_holder):
+
+	def __init__(self,parent,unit,pos=False):
+		Ui.Ui_holder.__init__(self)
+		Ui.Wui_elem.__init__(self,parent,14,15,pos)
+
+		self.link_to_unit(unit)
+
+	def link_to_unit(self,unit):
+
+
+		self.get_unit=weakref.ref(unit)
+		self.name_slot=Linked_Text(self,11,1,unit.get_name)
+		self.classe_slot=Linked_Text(self,11,1,unit.get_class_name)
+		self.health_bar=Cell_Jauge(self,unit.get_HP_max,unit.get_HP,Color.RED)
+		self.action_bar=Cell_Jauge(self,unit.get_AP_max,unit.get_AP,Color.GREEN)
+
+		self.skill1=Skill_Line(self,12,1,unit,1)
+		self.skill2=Skill_Line(self,12,1,unit,2)
+		self.skill3=Skill_Line(self,12,1,unit,3)
+		self.skill4=Skill_Line(self,12,1,unit,4)
+
+
+		self.add_elem(self.classe_slot)
+		self.add_elem(self.name_slot)
+		self.add_elem(self.health_bar)
+		self.add_elem(self.action_bar)
+
+		self.add_elem(self.skill1)
+		self.add_elem(self.skill2)
+		self.add_elem(self.skill3)
+		self.add_elem(self.skill4)
+
+
+	def build(self,con):
+
+
+		i=0
+		temp=libtcod.console_new(self.width,self.height)
+		print len(self.content)
+		for elem in self.content:
+
+			elem.build(temp)
+			libtcod.console_blit(temp,0,0,elem.width,elem.height,con,1,i)
+			elem.set_pos(1,i)
+			libtcod.console_put_char_ex(con,0,i,chr(26),libtcod.white,libtcod.black)
+			libtcod.console_clear(temp)
+			i+=2
+
+class Name_Entry(Ui.W_Text):
+
+	def __init__(self,parent,pos=False):
+
+
+		self.text=''
+		Ui.W_Text.__init__(self,parent,10,1,'',pos)
+
+		self.text=''
+
+	def get_text(self):
+
+		return self.text
+
+	def add_letter(self,char):
+
+		self.text+=char
+
+	def del_letter(self):
+
+		self.text=self.text[:len(self.text)-1]
+
+
+
+
+	def select_elem(self,id):
+
+		pass
+
+	def unselect_elem(self,id):
+
+		pass
+
+	def select(self):
+
+		self.selected=True
+
+
+	def unselect(self):
+
+		self.selected=False
+
+	def next_elem(self):
+
+
+		pass
+
+	def previous_elem(self):
+
+		pass
+
+	def activate_elem(self):
+
+		print 'yeah!'

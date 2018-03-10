@@ -10,6 +10,8 @@ import Input
 import Ennemy
 import Combat
 
+import SoundManager
+
 
 
 class Demon_Hunter_Game(Wong.Wong_Game):
@@ -25,8 +27,19 @@ class Demon_Hunter_Game(Wong.Wong_Game):
 
 		self.selected_window=None
 
+		self.sound_manager=SoundManager.Sound_Manager()
+
+		self.loading()
+
+	def loading(self):
+
+		self.sound_manager.load()
+		self.tileset=Map.Tileset(16)
 
 
+		self.tileset.load('data/Ressources/tileset1.cfg')
+
+		self.tileset.set_empty(3)
 	#Ovveride from Wong_Game, to change game_shower to level_shower
 	def set_game_window(self,window):
 
@@ -36,12 +49,12 @@ class Demon_Hunter_Game(Wong.Wong_Game):
 
 	def initialize_game(self):
 
-		self.game_w=self.window.create_window(49,42,0,0,"Map")
-		self.menu_w=self.window.create_window(30,50,49,0,"Menu")
+		#self.game_w=self.window.create_window(49,42,0,0,"Map")
+		#self.menu_w=self.window.create_window(30,50,49,0,"Menu")
 
 		#self.charamenu=self.ui.create_menu('simple',self.menu_w,28,10,'character')
-		self.charamenu=ui.Soft_Menu(self.menu_w,28,48,'Menus')
-		self.menu_w.add_elem(self.charamenu)
+		#self.charamenu=ui.Soft_Menu(self.menu_w,28,48,'Menus')
+		#self.menu_w.add_elem(self.charamenu)
 
 
 
@@ -67,6 +80,10 @@ class Demon_Hunter_Game(Wong.Wong_Game):
 
 		self.other_unit=list()
 
+		self.path_map=None
+
+
+		self.WUPOINT=60
 
 
 		self.window.build()
@@ -74,10 +91,10 @@ class Demon_Hunter_Game(Wong.Wong_Game):
 	def create_squad(self):
 
 		self.squad=Units.Squad(4)
-		self.squad.add_unit(self.create_unit('Alice',Classes.Warrior()))
-		self.squad.add_unit(self.create_unit('Bob',Classes.Sage()))
-		self.squad.add_unit(self.create_unit('Cedric',Classes.Assasin()))
-		self.squad.add_unit(self.create_unit('David',Classes.Archer()))
+		#self.squad.add_unit(self.create_unit('Alice',Classes.Warrior()))
+		#self.squad.add_unit(self.create_unit('Bob',Classes.Sage()))
+	#	self.squad.add_unit(self.create_unit('Cedric',Classes.Assasin()))
+		#self.squad.add_unit(self.create_unit('David',Classes.Archer()))
 
 	def debug_start(self):
 
@@ -92,30 +109,32 @@ class Demon_Hunter_Game(Wong.Wong_Game):
 		#self.test_icon.switch()
 
 
-
-
-		tileset=Map.Tileset(16)
-
-		print os.path.abspath('..')
+		#print os.path.abspath('..')
 		#print os.path.dirname()
-		tileset.load('data/Ressources/tileset1.cfg')
 
-		tileset.set_empty(1)
 
-		self.level=Level.Level()
-		self.level.set_tileset(tileset)
 
-		self.level.map=Level.create_test_map(tileset)
+		#tileset=Map.Tileset(16)
 
-		self.path_map=None
 
-		self.set_game_window(self.game_w)
+		#tileset.load('data/Ressources/tileset1.cfg')
 
-		self.create_squad()
-		self.squad.get_unit(1).set_pos(16,15)
-		self.squad.get_unit(2).set_pos(18,15)
-		self.squad.get_unit(3).set_pos(16,14)
-		self.squad.get_unit(4).set_pos(17,14)
+		#tileset.set_empty(1)
+
+	#	self.level=Level.Level()
+	#	self.level.set_tileset(tileset)
+
+		#self.level.map=Level.create_test_map(tileset)
+
+
+
+		#self.set_game_window(self.game_w)
+
+	#	self.create_squad()
+	#	self.squad.get_unit(1).set_pos(16,15)
+	#	self.squad.get_unit(2).set_pos(18,15)
+	#	self.squad.get_unit(3).set_pos(16,14)
+	#	self.squad.get_unit(4).set_pos(17,14)
 
 
 		for u in self.squad.get_units():
@@ -128,23 +147,9 @@ class Demon_Hunter_Game(Wong.Wong_Game):
 		libtcod.console_set_color_control(libtcod.COLCTRL_2,Color.DBLUE,Color.BLACK)
 
 
-		#self.chara1_menu=ui.Unit_Info(self.charamenu,self.squad.get_unit(1))
-		#self.charamenu.add_elem(self.chara1_menu)
 
-		#self.chara2_menu=ui.Unit_Info(self.charamenu,self.squad.get_unit(2))
-		#self.charamenu.add_elem(self.chara2_menu)
-
-		#self.chara3_menu=ui.Unit_Info(self.charamenu,self.squad.get_unit(3))
-		#self.charamenu.add_elem(self.chara3_menu)
-
-		#self.chara4_menu=ui.Unit_Info(self.charamenu,self.squad.get_unit(4))
-		#self.charamenu.add_elem(self.chara4_menu)
-
-		#self.test_menu=ui.Unit_Ui(self.charamenu,self.squad.get_unit(1))
-		#self.charamenu.add_elem(self.test_menu)
-
-		self.squad_ui=ui.Squad_Ui(self.charamenu,self.squad,self)
-		self.charamenu.add_elem(self.squad_ui)
+		#self.squad_ui=ui.Squad_Ui(self.charamenu,self.squad,self)
+		#self.charamenu.add_elem(self.squad_ui)
 
 
 		self.level.add_monster(self.create_monster(Classes.Demonito()))
@@ -187,6 +192,8 @@ class Demon_Hunter_Game(Wong.Wong_Game):
 
 			# SYSTEM INPUT -------------------------------------------------
 
+		if libtcod.console_is_window_closed():
+			self.set_state(0)
 		if self.key == Input.F11:#libtcod.KEY_ENTER and self.key.lalt:
 	        #Alt+Enter: toggle fullscreen
 			libtcod.console_set_fullscreen(not libtcod.console_is_fullscreen())
@@ -196,7 +203,10 @@ class Demon_Hunter_Game(Wong.Wong_Game):
 
 		elif self.key == Input.F2:
 
-			self.test_log()
+			#self.test_log()
+			#self.sound_manager.toggle_music()
+			#self.sound_manager.play_sound(self.sound_manager.sword2)
+			self.kill_all_ennemy()
 
 		elif self.key == Input.ALT_ESCAPE:
 			self.state=0
@@ -244,6 +254,41 @@ class Demon_Hunter_Game(Wong.Wong_Game):
 
 		#if self.key.vk==libtcod.KEY_CHAR:
 		#	print self.key.c
+
+	#keyboard input--------------------------------------------------------
+
+		if self.state==4 or self.state==5 :
+
+			if self.key.vk==libtcod.KEY_CHAR:
+
+				print chr(self.key.c)
+				self.print_letter(chr(self.key.c))
+
+			elif self.key==Input.BACKSPACE:
+
+				self.del_letter()
+
+			elif self.key==Input.ENTER:
+
+				self.validate_character()#temporary
+
+			elif self.key==Input.SPACE:
+
+				self.validate_team()
+
+		elif self.state==6:
+
+			if self.key==Input.SPACE:
+
+				self.new_level()
+
+			elif self.key==Input.TAB:
+
+				self.level.set_spawns()
+
+			elif self.key==Input.ENTER:
+
+				self.launch_level()
 
 	#Game INPUT----------------------------------------------------------
 
@@ -419,11 +464,11 @@ class Demon_Hunter_Game(Wong.Wong_Game):
 				self.render()
 				self.input()
 				self.turn_iterate()
-			if self.state==2:
+			if self.state==2 or self.state == 4 or self.state == 5 or self.state == 7:
 				self.render()
 				self.input()
 
-			if self.state==3:
+			if self.state==3 or self.state == 6:
 
 				self.render()
 				self.input()
@@ -433,7 +478,7 @@ class Demon_Hunter_Game(Wong.Wong_Game):
 
 		self.turner+=1
 
-		if self.turner%10 ==0 and self.game_screen and (self.state==1 or self.state==3):
+		if self.turner%10 ==0 and self.game_screen and (self.state==1 or self.state==3 or self.state==6):
 			self.game_screen.update()
 		if self.turner%50==0:
 			self.game_screen.blink()
@@ -457,7 +502,7 @@ class Demon_Hunter_Game(Wong.Wong_Game):
 		menu=ui.Control_Menu(main_menu_w,18,18,'Main menu')
 		main_menu_w.add_elem(menu)
 
-		button1=Ui.Text_Button(menu,15,1,'New Game',Color.WHITE,Color.BLACK,self.new_game,None)
+		button1=Ui.Text_Button(menu,15,1,'New Game',Color.WHITE,Color.BLACK,self.team_screen,None)#self.new_game,None)
 		menu.add_elem(button1)
 
 
@@ -474,6 +519,9 @@ class Demon_Hunter_Game(Wong.Wong_Game):
 
 		self.state=2
 		self.window.build()
+
+
+		self.sound_manager.start_music()
 
 	def new_game(self):
 
@@ -504,6 +552,10 @@ class Demon_Hunter_Game(Wong.Wong_Game):
 			self.ia.start_turn()
 			self.set_state(3)	#3:ennemy turn
 			#self.ia.do_a_move()
+			for u in self.squad.get_units():
+				u.set_ready()
+
+		self.print_log('GAME',"Ennemy turn")
 
 	def new_turn(self):
 
@@ -511,10 +563,338 @@ class Demon_Hunter_Game(Wong.Wong_Game):
 			u.set_ready()
 			self.heal_AP(u,10)
 
+		for m in self.level.get_monsters():
+			m.set_ready()
+
 		self.state=1
 
+		self.print_log('GAME',"it's your turn")
 
+	def team_screen(self):
+
+
+		self.window.close_window(self.selected_window)
+
+		self.class_window=self.window.create_window(15,30,0,5,'select your team')
+
+		self.log_w=self.window.create_window(50,8,0,42,'Log')
+		self.log=ui.Log(self.log_w,48,6)
+		self.log_w.add_elem(self.log)
+
+
+		menu=ui.Control_Menu(self.class_window,13,28,'classes')
+		self.class_window.add_elem(menu)
+
+
+		self.create_squad()
+
+
+		warrior=Ui.Text_Button(menu,10,1,'warrior',Color.WHITE,Color.BLACK,self.select_class,[Classes.Warrior()])
+		menu.add_elem(warrior)
+
+		archer=Ui.Text_Button(menu,10,1,'archer',Color.WHITE,Color.BLACK,self.select_class,[Classes.Archer()])
+		menu.add_elem(archer)
+
+		assasin=Ui.Text_Button(menu,10,1,'assasin',Color.WHITE,Color.BLACK,self.select_class,[Classes.Assasin()])
+		menu.add_elem(assasin)
+
+		sage=Ui.Text_Button(menu,10,1,'sage',Color.WHITE,Color.BLACK,self.select_class,[Classes.Sage()])
+		menu.add_elem(sage)
+
+		mage=Ui.Text_Button(menu,10,1,'mage',Color.WHITE,Color.BLACK,self.select_class,[Classes.Mage()])
+		menu.add_elem(mage)
+
+		start=Ui.Text_Button(menu,10,1,'Begin',Color.LBLUE,Color.GREEN,self.validate_team,None)
+		menu.add_elem(start)
+
+		self.set_state(2)	#4: selection_screen
+
+
+		self.menu_w=self.window.create_window(30,50,49,0,"Menu")
+		self.charamenu=ui.Soft_Menu(self.menu_w,28,48,'Menus')
+		self.menu_w.add_elem(self.charamenu)
+		self.squad_ui=ui.Squad_Ui(self.charamenu,self.squad,self)
+		self.charamenu.add_elem(self.squad_ui)
+
+		self.select_window(self.class_window)
+
+		self.window.build('erase')
+
+
+	def select_class(self,classe):
+
+		self.team_window=self.window.create_window(20,30,15,5,'class info')
+
+		unit=self.create_unit('name',classe)
+
+		for u in range(1,5):
+			if self.squad.get_unit(u).get_type()=='Not':
+				break
+		self.squad.set_unit(u,unit)
+
+		self.selected_unit=unit
+
+		unit_file=ui.Character_File(self.team_window,unit)
+		self.team_window.add_elem(unit_file)
+
+		name_w=self.window.create_window(15,5,35,5,'enter name ')
+		self.entry=ui.Name_Entry(name_w)
+		name_w.add_elem(self.entry)
+		self.select_window(name_w)
+
+		self.name_w=name_w
+
+		self.set_state(4)
+
+
+		self.squad_ui.rebuild(self.squad)
+
+		self.window.build('erase')
+
+
+	def open_upgrade_menu(self):
+
+		self.set_state(7)
+		self.upgrade_window=self.window.create_window(80,50,0,0,'upgrade')
+
+		unit1_w=self.window.create_window(17,40,0,0,'unit1')
+		unit1_m=ui.Character_File(unit1_w,self.squad.get_unit(1))
+		unit1_w.add_elem(unit1_m)
+
+		unit2_w=self.window.create_window(17,40,17,0,'unit2')
+		unit2_m=ui.Character_File(unit1_w,self.squad.get_unit(2))
+		unit2_w.add_elem(unit2_m)
+
+		unit3_w=self.window.create_window(17,40,34,0,'unit3')
+		unit3_m=ui.Character_File(unit1_w,self.squad.get_unit(3))
+		unit3_w.add_elem(unit3_m)
+
+		unit4_w=self.window.create_window(17,40,51,0,'unit4')
+		unit4_m=ui.Character_File(unit1_w,self.squad.get_unit(4))
+		unit4_w.add_elem(unit4_m)
+
+		controll_w=self.window.create_window(12,40,68,0,'upgrade')
+		controll=ui.Upgrade_Controll(controll_w,self)
+		controll_w.add_elem(controll)
+
+		self.team_window.add_elem(unit1_w)
+		self.team_window.add_elem(unit2_w)
+		self.team_window.add_elem(unit3_w)
+		self.team_window.add_elem(unit4_w)
+		self.team_window.add_elem(controll_w)
+
+		self.select_window(controll_w)
+
+		self.window.build()
+
+	def kill_all_ennemy(self):
+
+		while len(self.level.get_monsters())>=1:
+			self.heal_HP(self.level.monsters.get_unit(0),-10)
+
+	def print_letter(self,char):
+
+		self.entry.add_letter(char)
+		self.name_w.build()
+
+	def del_letter(self):
+
+		self.entry.del_letter()
+
+	def validate_character(self):
+
+		if len(self.entry.get_text())<2:
+			return
+		self.selected_unit.set_name(self.entry.get_text())
+		print 'valided'
+		self.select_window(self.class_window)
+		self.window.close_window(self.team_window)
+		self.window.close_window(self.name_w)
+		self.set_state(2)
+
+		print self.squad.get_units()
+		self.squad_ui.rebuild(self.squad)
+		print 'squad ui rebuilt'
+
+		self.print_log('TEAM',self.selected_unit.get_name()+ ' the '+ self.selected_unit.get_class_name() + ' has joined the team')
+
+
+		if self.squad.get_unit(4).get_type() !='Not':
+
+			self.print_log('TEAM','Your team is ready, press [space] to begin your adventure')
+			self.set_state(5)#temporary
+
+
+
+
+		self.window.build('erase')
+		#self.menu_w.build()
+
+	def validate_team(self):
+
+		if self.squad.get_unit(4).get_type() =='Not':
+			self.print_log('WARNING',"you don't have your full team yet")
+		else:
+			self.print_log('INFO',"launching game...")
+			self.sound_manager.validate()
+			self.select_window(None)
+			self.prepare_game()
+
+
+
+	def prepare_game(self):
+
+		self.print_log('SYSTEM',"cleaning windows")
+		self.window.close_window(self.class_window)
+		#self.window.close_window(self.team_window)
+	#	self.window.close_window(self.name_w)
+	#	self.window.close_window(self.team_window)
+		#self.window.close_window(
+
+		self.print_log('SYSTEM',"done")
+		self.set_state(2)
+
+		self.game_w=self.window.create_window(49,42,0,0,"Map")
+
+		self.window.build('erase')
+
+
+
+
+
+		self.initialize_game()
+		self.new_level()
+
+
+	def new_level(self):
+
+		self.print_log('SYSTEM',"generating level")
+		self.level=Level.Level()
+		self.level.set_tileset(self.tileset)
+
+		while not self.level.generate_level(2,5,18,11,6):
+			print 'retrying level generation'
+
+		self.set_game_window(self.game_w)
+
+
+		self.print_log('GAME','press [enter] to start playing')
+		self.set_state(6)
+
+
+	def launch_level(self):
+
+		print 'launching_level'
+		self.initialize_path_map()
+
+		print self.level.spawn
+		for u in self.squad.get_units():
+			while not self.place_to(u,self.level.spawn):
+				pass
+
+		self.generate_monsters()
+
+		for m in self.level.get_monsters():
+			while not self.place_to(m,self.level.monster_spawn):
+				pass
+
+		self.new_turn()
+
+
+	def end_level(self):
+
+		self.print_log('GAME','level finished')
+
+		#gain_point
+
+		self.open_upgrade_menu()
+
+
+	def upgrade_unit(self,unit,upgrade):
+
+		self.WUPOINT-=self.get_upgrade_cost(unit,upgrade)
+		if upgrade=='HP':
+			unit.levelup()
+			unit.HP_max=unit.HP_max+1
+			self.heal_HP(unit,1)
+
+		if upgrade=='AP':
+			unit.levelup()
+			unit.AP_max=unit.AP_max+1
+
+
+
+		print 'upgraded'
+		self.window.build()
+
+
+	def get_upgrade_cost(self,unit,upgrade):
+
+		return 30
+
+	def place_to(self,unit,tile):
+
+
+		result=False
+		if libtcod.map_is_walkable(self.path_map,tile[0],tile[1]):
+
+			unit.set_pos(tile[0],tile[1])
+			result = True
+
+		else:
+			a=0
+			while a<5:
+
+				if libtcod.map_is_walkable(self.path_map,tile[0]+1+a,tile[1]):
+
+					unit.set_pos(tile[0]+1+a,tile[1])
+					result= True
+
+				if libtcod.map_is_walkable(self.path_map,tile[0]-1-a,tile[1]):
+
+					unit.set_pos(tile[0]-1-a,tile[1])
+					result= True
+
+				if libtcod.map_is_walkable(self.path_map,tile[0],tile[1]+1+a):
+
+					unit.set_pos(tile[0],tile[1]+1+a)
+					result= True
+
+				if libtcod.map_is_walkable(self.path_map,tile[0],tile[1]-1-a):
+
+					unit.set_pos(tile[0],tile[1]-1-a)
+					result= True
+
+				else:
+					pass
+
+				a+=1
+				if result:
+					break
+
+
+
+		self.path_place_unit()
+
+		return result
+
+
+	def game_over(self):
+
+		self.main_menu()
+		self.window.build('erase')
 	#Combat Methods--------------------------------
+
+	def generate_monsters(self):
+
+		if self.level<3:
+
+			self.level.add_monster(self.create_monster(Classes.Demonito()))
+			self.level.add_monster(self.create_monster(Classes.Runner()))
+			#-----------------
+			self.level.add_monster(self.create_monster(Classes.Runner()))
+			self.level.add_monster(self.create_monster(Classes.Runner()))
+
 
 	def get_fight_issue(self):
 
@@ -531,10 +911,14 @@ class Demon_Hunter_Game(Wong.Wong_Game):
 		if unit.player:
 
 			self.squad.remove_unit(unit)
+			if len(self.squad.get_units())<1:
+				self.game_over()
 
 		else:
 
 			self.level.monsters.remove_unit(unit)
+			if len(self.level.get_monsters())<1:
+				self.end_level()
 
 		self.print_log('COMBAT',unit.get_name() + ' Died!')
 
@@ -571,7 +955,64 @@ class Demon_Hunter_Game(Wong.Wong_Game):
 	def test_log(self):
 
 		self.print_log('DEBUG','Ceci est un message test')
+
+	#------------music--------------------------
+
+	def play_combat_sound(self,unit,action):
+
+		print 'sound incomming'
+
+		if unit.get_class_name()=='Warrior':
+
+			if action==1:
+
+				self.sound_manager.play_sound(self.sound_manager.sword2)
+
+		elif unit.get_class_name()=='Assasin':
+
+			if action==1:
+
+				self.sound_manager.play_sound(self.sound_manager.punch3)
+
+		elif unit.get_class_name()=='Archer':
+
+			if action==1:
+
+				self.sound_manager.play_sound(self.sound_manager.punch4)
+
+		elif unit.get_class_name()=='Sage':
+
+			if action==1:
+
+				self.sound_manager.play_sound(self.sound_manager.punch1)
+
+		elif unit.get_class_name()=='Mage':
+
+			if action==1:
+
+				self.sound_manager.play_sound(self.sound_manager.magic2)
+
+		elif unit.get_class_name()=='Demonito':
+
+			if action==1:
+
+				self.sound_manager.play_sound(self.sound_manager.sword1)
+
+		elif unit.get_class_name()=='Runner':
+
+			if action==1:
+
+				self.sound_manager.play_sound(self.sound_manager.punch2)
+
+
 	#-----getters-------------------------------
+
+	def get_total_wupoint(self,num=False):
+
+		if num:
+			return self.WUPOINT
+		else:
+			return str(self.WUPOINT)
 
 	def get_entity(self):
 
@@ -702,7 +1143,8 @@ class Demon_Hunter_Game(Wong.Wong_Game):
 	def select_window(self,window):
 
 		self.selected_window=window
-		window.content.select()
+		if window:
+			window.content.select()
 
 	def select_action(self,id):
 
@@ -805,7 +1247,8 @@ class Demon_Hunter_Game(Wong.Wong_Game):
 				self.select_unit(unit)
 		else:
 			if self.selected_unit and self.can_reach() and self.selected_action==0:
-				self.select_target(self.selected_tile)
+				if libtcod.map_is_walkable(self.path_map,x,y):
+					self.select_target(self.selected_tile)
 
 
 
@@ -1013,13 +1456,21 @@ class Demon_Hunter_Game(Wong.Wong_Game):
 
 	def solve_fight(self,unit,id,target):
 
+
+		print unit.get_class_name(), id
+		self.play_combat_sound(unit,id)
+
 		self.fight.calc_issue(unit,id,target)#not necessary
-		self.heal_HP(target,-1*self.fight.get_damage())
-		self.heal_AP(unit,-1*self.fight.get_cost())
 
 		log=unit.get_name() + ' attacked ' + target.get_name() + ' for ' + str(self.fight.get_damage()) + ' damage'
 
 		self.print_log('COMBAT',log)
+
+
+		self.heal_HP(target,-1*self.fight.get_damage())
+		self.heal_AP(unit,-1*self.fight.get_cost())
+
+
 		self.menu_w.build()
 
 

@@ -30,6 +30,7 @@ class Warrior(Classe):
 		self.type='fight'
 
 		self.base_skills.append(Actions.Attack())
+		self.base_skills.append(Actions.Lock())
 
 class Assasin(Classe):
 
@@ -50,7 +51,7 @@ class Archer(Classe):
 	def __init__(self):
 
 		Classe.__init__(self)
-		self.name="Ranger"
+		self.name="Archer"
 
 		self.baseAP=3
 		self.baseHP=3
@@ -58,6 +59,8 @@ class Archer(Classe):
 		self.type='range'
 
 		self.base_skills.append(Actions.RangeAttack())
+
+		self.base_skills.append(Actions.Kick())
 
 class Sage(Classe):
 
@@ -70,6 +73,20 @@ class Sage(Classe):
 		self.baseHP=3
 		self.char=chr(55)
 		self.type='sage'
+
+		self.base_skills.append(Actions.Attack())
+
+class Mage(Classe):
+
+	def __init__(self):
+
+		Classe.__init__(self)
+		self.name="Mage"
+
+		self.baseAP=3
+		self.baseHP=2
+		self.char=chr(244)
+		self.type='mage'
 
 		self.base_skills.append(Actions.Attack())
 

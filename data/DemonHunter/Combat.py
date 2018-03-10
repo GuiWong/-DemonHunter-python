@@ -34,6 +34,20 @@ class Combat_Manager:
 		if self.type_win(unit.get_type(),target.get_type()):
 			base +=1
 
+		if unit.get_skill(skill).state_bonus:
+			if unit.get_skill(skill).state_bonus[0]==target.state:
+				base += unit.get_skill(skill).state_bonus[1]
+				
+
+		self.state_inflict=unit.get_skill(skill).inflict_state
+
+		if unit.get_skill(skill).state_bonus:
+			if unit.get_skill(skill).state_bonus[0]==target.state:
+				base += unit.get_skill(skill).state_bonus[1]
+
+
+		self.effect=unit.get_skill(skill).effect
+
 		print base
 
 		self.damage=base

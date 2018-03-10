@@ -88,6 +88,7 @@ F12=Input([libtcod.KEY_F12])
 ENTER=Input([libtcod.KEY_ENTER])
 TAB=Input([libtcod.KEY_TAB])
 SPACE=Input([libtcod.KEY_SPACE])
+BACKSPACE=Input([libtcod.KEY_BACKSPACE])
 BACK=0
 
 

@@ -169,9 +169,15 @@ class Map:
 		self.data=[[tileset.get_empty() for X in range(self.width)] for Y in range(self.height)]
 
 	def get_tile(self,x,y):
-		return self.data[y][x]
+		if x<0 or x>=40 or y < 0 or y>=40:
+			return self.data[0][0]
+		else:
+			return self.data[y][x]
 
 	def set_tile(self,x,y,tile):
+
+		if x<0 or x>=40 or y < 0 or y>=40:
+			return
 		self.data[y][x]=tile
 
 	def set_focus_tile(self,x,y):

@@ -12,7 +12,7 @@ class Palette:
 
 		if not data:
 			data=[(0,0,0),(0,0,128),(0,128,0),(0,128,128),(128,0,0),(128,0,128),(128,128,0),(192,192,192),(128,128,128),(0,0,255),(0,255,0),(0,255,255),(255,0,0),(255,0,255),(255,255,0),(255,255,255)]
-			print data[0]
+		#	print data[0]
 
 		self.BLACK=libtcod.Color(*data[0])
 		self.BLUE=libtcod.Color(*data[1])
@@ -121,7 +121,10 @@ class Main_Window(W_Window):
 		return candidate
 	#------7DRL------------------------------------------------------------
 
-	def build(self):
+	def build(self,arg=None):
+
+		if arg=='erase':
+			libtcod.console_clear(self.console)
 
 		for window in self.sub_windows:
 			window.build()
@@ -260,7 +263,7 @@ class Simple_Window(Sub_Window):
 	def build(self):
 
 
-		print 'built!'
+		#print 'built!'
 		libtcod.console_set_default_foreground(self.console,self.get_color())
 		libtcod.console_set_default_background(self.console,self.get_bk_color())
 		libtcod.console_print_frame(self.console,0,0,self.width,self.height,True,libtcod.BKGND_SET,self.id)
@@ -291,7 +294,7 @@ class Folding_Window(Sub_Window):
 	def build(self):
 
 
-		print 'built!'
+		#print 'built!'
 		libtcod.console_set_default_foreground(self.console,self.get_palette().LBLUE)
 		libtcod.console_set_default_background(self.console,self.get_palette().DGREY)
 		libtcod.console_print_frame(self.console,0,0,self.width,self.height,True,libtcod.BKGND_SET,'fenetre1')
@@ -342,7 +345,8 @@ class Configurable_Window(Sub_Window):
 
 		if mode == "simple":
 
-			print "simple"
+		#	print "simple"
+			pass
 
 	def add_elem(self,elem):
 
@@ -362,9 +366,9 @@ class Configurable_Window(Sub_Window):
 
 
 		for elem in self.content:
-			print x-1, y-1
+			#print x-1, y-1
 			if elem.is_in(x-1,y-1):
-				print elem
+				#print elem
 				ret=elem.get_elem_by_mouse(x+elem.x+1,y+elem.y+1)
 
 		return ret
@@ -373,7 +377,7 @@ class Configurable_Window(Sub_Window):
 	def build(self):
 
 
-		print 'built!'
+		#print 'built!'
 		libtcod.console_set_default_foreground(self.console,self.get_color())
 		libtcod.console_set_default_background(self.console,self.get_bk_color())
 		libtcod.console_print_frame(self.console,0,0,self.width,self.height,True,libtcod.BKGND_SET,self.id)
