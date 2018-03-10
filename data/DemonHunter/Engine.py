@@ -197,16 +197,16 @@ class Demon_Hunter_Game(Wong.Wong_Game):
 		if self.key == Input.F11:#libtcod.KEY_ENTER and self.key.lalt:
 	        #Alt+Enter: toggle fullscreen
 			libtcod.console_set_fullscreen(not libtcod.console_is_fullscreen())
-		elif self.key == Input.F4:
+	#	elif self.key == Input.F4:
 
-			self.game_screen.toggle_blink_selected()
+		#	self.game_screen.toggle_blink_selected()
 
-		elif self.key == Input.F2:
+		#elif self.key == Input.F2:
 
 			#self.test_log()
 			#self.sound_manager.toggle_music()
 			#self.sound_manager.play_sound(self.sound_manager.sword2)
-			self.kill_all_ennemy()
+			#self.kill_all_ennemy()
 
 		elif self.key == Input.ALT_ESCAPE:
 			self.state=0
@@ -677,11 +677,11 @@ class Demon_Hunter_Game(Wong.Wong_Game):
 		controll=ui.Upgrade_Controll(controll_w,self)
 		controll_w.add_elem(controll)
 
-		self.team_window.add_elem(unit1_w)
-		self.team_window.add_elem(unit2_w)
-		self.team_window.add_elem(unit3_w)
-		self.team_window.add_elem(unit4_w)
-		self.team_window.add_elem(controll_w)
+		self.upgrade_window.add_elem(unit1_w)
+		self.upgrade_window.add_elem(unit2_w)
+		self.upgrade_window.add_elem(unit3_w)
+		self.upgrade_window.add_elem(unit4_w)
+		self.upgrade_window.add_elem(controll_w)
 
 		self.select_window(controll_w)
 
@@ -765,6 +765,16 @@ class Demon_Hunter_Game(Wong.Wong_Game):
 		self.initialize_game()
 		self.new_level()
 
+	def next_level(self):
+
+		self.select_window(None)
+
+		self.window.close_window(self.upgrade_window)
+		self.window.close_window(self.team_window)
+
+		self.window.build('erase')
+
+		self.new_level()
 
 	def new_level(self):
 
@@ -778,8 +788,10 @@ class Demon_Hunter_Game(Wong.Wong_Game):
 		self.set_game_window(self.game_w)
 
 
-		self.print_log('GAME','press [enter] to start playing')
+		#self.print_log('GAME','press [enter] to start playing')
 		self.set_state(6)
+
+		self.launch_level()
 
 
 	def launch_level(self):
@@ -813,6 +825,8 @@ class Demon_Hunter_Game(Wong.Wong_Game):
 	def upgrade_unit(self,unit,upgrade):
 
 		self.WUPOINT-=self.get_upgrade_cost(unit,upgrade)
+		if self.WUPOINT<=0:
+			self.WUPINT==0
 		if upgrade=='HP':
 			unit.levelup()
 			unit.HP_max=unit.HP_max+1
@@ -830,7 +844,13 @@ class Demon_Hunter_Game(Wong.Wong_Game):
 
 	def get_upgrade_cost(self,unit,upgrade):
 
-		return 30
+		if upgrade=='HP':
+
+			return (unit.HP_max - unit.classe.baseHP)*30
+
+		elif upgrade=='AP':
+
+			return (unit.AP_max-unit.classe.baseAP)*30
 
 	def place_to(self,unit,tile):
 
@@ -1463,6 +1483,22 @@ class Demon_Hunter_Game(Wong.Wong_Game):
 		self.fight.calc_issue(unit,id,target)#not necessary
 
 		log=unit.get_name() + ' attacked ' + target.get_name() + ' for ' + str(self.fight.get_damage()) + ' damage'
+
+		if self.fight.state_inflict:
+			target.state=self.fight.state_inflict
+
+		if self.fight.effect:
+
+			if self.fight.effect[0]=='push':
+				dx=target.get_pos()[0]-unit.get_pos[0]
+				dy=target.get_pos()[1]-unit.get_pos[1]
+				target.set_pos(target.get_pos()[0]+dx,target.get_pos()[1]+dy)
+			if self.fight.effect[0]=='AP':
+				self.heal_AP(target,self.fight.effect[1])
+
+
+
+		self.path_place_unit()
 
 		self.print_log('COMBAT',log)
 

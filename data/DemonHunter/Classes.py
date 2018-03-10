@@ -45,6 +45,7 @@ class Assasin(Classe):
 		self.type='stealth'
 
 		self.base_skills.append(Actions.Attack())
+		self.base_skills.append(Actions.BackStab())
 
 class Archer(Classe):
 
@@ -89,6 +90,7 @@ class Mage(Classe):
 		self.type='mage'
 
 		self.base_skills.append(Actions.Attack())
+		self.base_skills.append(Actions.Paralyse())
 
 class Demonito(Classe):
 

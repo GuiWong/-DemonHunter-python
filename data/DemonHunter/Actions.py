@@ -102,4 +102,33 @@ class Lock(Skill):
 
 		self.inflict_state='locked'
 		self.state_bonus=None
-		self.effect=None
+
+
+class Paralyse(Skill):
+
+	def __init__(self):
+
+		Skill.__init__(self)
+
+		self.name='Paralyse'
+		self.target=Target.Ranged(4,6)	#the Target object who handle targetting
+		self.power=0		#the damage/heal/power of the skill
+		self.type='enemy'		# use/enemy/team/self
+		self.cost=0
+
+		self.effect=['AP',-2]
+
+
+class BackStab(Skill):
+
+	def __init__(self):
+
+		Skill.__init__(self)
+
+		self.name='Backstab'
+		self.target=Target.CaC()	#the Target object who handle targetting
+		self.power=0	#the damage/heal/power of the skill
+		self.type='enemy'		# use/enemy/team/self
+		self.cost=0			#the AP cost of the spell
+
+		self.state_bonus=['locked',2]

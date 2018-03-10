@@ -430,11 +430,14 @@ class Upgrade_Controll(Control_Menu):
 		self.unit_name=Linked_Button(self,8,1,self.get_unit().get_name,WongUtils.idle,None)
 		self.add_elem(self.unit_name)
 
-		self.hp_button=Ui.Text_Button(self,8,1,'[' + str(self.get_game().get_upgrade_cost(self.get_unit,'HP')) + ']',Color.WHITE,Color.BLACK,self.get_game().upgrade_unit,[self.get_unit(),'HP'])
+		self.hp_button=Ui.Text_Button(self,8,1,'[' + str(self.get_game().get_upgrade_cost(self.get_unit(),'HP')) + ']',Color.WHITE,Color.BLACK,self.get_game().upgrade_unit,[self.get_unit(),'HP'])
 		self.add_elem(self.hp_button)
-		self.ap_button=Ui.Text_Button(self,8,1,'[' + str(self.get_game().get_upgrade_cost(self.get_unit,'AP')) + ']',Color.WHITE,Color.BLACK,self.get_game().upgrade_unit,[self.get_unit(),'AP'])
+		self.ap_button=Ui.Text_Button(self,8,1,'[' + str(self.get_game().get_upgrade_cost(self.get_unit(),'AP')) + ']',Color.WHITE,Color.BLACK,self.get_game().upgrade_unit,[self.get_unit(),'AP'])
 		self.add_elem(self.ap_button)
 
+
+		self.validation=Ui.Text_Button(self,8,1,'Next Level',Color.WHITE,Color.BLACK,self.get_game().next_level,None)
+		self.add_elem(self.validation)
 
 
 	def link_to_unit(self,unit):
